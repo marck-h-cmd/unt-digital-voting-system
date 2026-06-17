@@ -38,8 +38,21 @@ export class BlockchainService implements OnModuleInit {
       const rpcUrl = this.configService.get("SYSCOIN_RPC_URL");
       this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
-      const privateKey = this.configService.get("PRIVATE_KEY");
-      this.wallet = new Wallet(privateKey, this.provider);
+      let privateKey = this.configService.get("PRIVATE_KEY");
+      if (!privateKey || privateKey.trim() === "" || privateKey === "0x..." || privateKey.length < 64) {
+        this.logger.warn("⚠️ No valid PRIVATE_KEY configured. Generating a random wallet for development.");
+        this.wallet = Wallet.createRandom(this.provider) as unknown as Wallet;
+      } else {
+        try {
+          if (!privateKey.startsWith("0x")) {
+            privateKey = "0x" + privateKey;
+          }
+          this.wallet = new Wallet(privateKey, this.provider);
+        } catch (walletError) {
+          this.logger.error("❌ Failed to load configured PRIVATE_KEY. Generating a random wallet for fallback.", walletError);
+          this.wallet = Wallet.createRandom(this.provider) as unknown as Wallet;
+        }
+      }
 
       // Cargar ABI del contrato
       const abiPath = path.join(

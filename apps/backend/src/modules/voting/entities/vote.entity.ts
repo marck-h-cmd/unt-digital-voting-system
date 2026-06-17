@@ -11,6 +11,7 @@ import {
 import { ObjectType, Field, ID, Int } from "@nestjs/graphql";
 import { Session } from "./session.entity";
 import { Candidate } from "./candidate.entity";
+import { GraphQLJSON } from "../../../common/scalars/json.scalar";
 
 @ObjectType()
 @Entity("votes")
@@ -23,7 +24,7 @@ export class Vote {
   @Column({ unique: true })
   voteHash: string;
 
-  @Field()
+  @Field(() => Int)
   @Column()
   sessionId: number;
 
@@ -36,6 +37,10 @@ export class Vote {
   @ManyToOne(() => Candidate, { nullable: true })
   @JoinColumn({ name: "candidateId" })
   candidate: Candidate;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  candidateId: string;
 
   @Field()
   @Column()
@@ -57,7 +62,7 @@ export class Vote {
   @Column({ default: false })
   zkpValid: boolean;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSON, { nullable: true })
   @Column({ nullable: true, type: "jsonb" })
   zkpProof: any;
 

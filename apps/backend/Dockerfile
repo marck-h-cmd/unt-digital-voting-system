@@ -11,7 +11,7 @@ COPY package*.json ./
 COPY tsconfig*.json ./
 
 # Instalar dependencias
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copiar código fuente
 COPY src ./src
@@ -26,7 +26,7 @@ WORKDIR /app
 
 # Instalar dependencias de producción
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev --legacy-peer-deps
 
 # Copiar build
 COPY --from=builder /app/dist ./dist

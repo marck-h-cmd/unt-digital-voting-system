@@ -10,6 +10,7 @@ import {
 import { ObjectType, Field, ID, Int } from "@nestjs/graphql";
 import { Vote } from "./vote.entity";
 import { Candidate } from "./candidate.entity";
+import { GraphQLJSON } from "../../../common/scalars/json.scalar";
 
 @ObjectType()
 @Entity("sessions")
@@ -66,7 +67,7 @@ export class Session {
   @Column({ nullable: true })
   ipfsSessionHash: string;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSON, { nullable: true })
   @Column({ nullable: true, type: "jsonb" })
   metadata: any;
 

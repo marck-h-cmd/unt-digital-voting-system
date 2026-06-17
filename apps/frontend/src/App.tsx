@@ -31,8 +31,8 @@ const syscoinChain = {
     symbol: 'SYS',
   },
   rpcUrls: {
-    public: { http: ['https://rpc-testnet.syscoin.org'] },
-    default: { http: ['https://rpc-testnet.syscoin.org'] },
+    public: { http: ['https://rpc.tanenbaum.io'] },
+    default: { http: ['https://rpc.tanenbaum.io'] },
   },
   blockExplorers: {
     default: {
@@ -166,11 +166,11 @@ function App() {
             projectId={projectId}
             ethereumClient={ethereumClient}
           />
-          <Box minH="100vh" display="flex" flexDirection="column">
-            <Navbar />
-            <Box flex="1" py={8} px={4}>
-              <ErrorBoundary>
-                <BrowserRouter>
+          <BrowserRouter>
+            <Box minH="100vh" display="flex" flexDirection="column">
+              <Navbar />
+              <Box flex="1" py={8} px={4}>
+                <ErrorBoundary>
                   <Routes>
                     <Route path="/" element={<VotingInterface />} />
                     <Route path="/dashboard" element={<VotingDashboard />} />
@@ -179,11 +179,11 @@ function App() {
                     <Route path="/verify/:voteHash" element={<ZKPVerification />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
-                </BrowserRouter>
-              </ErrorBoundary>
+                </ErrorBoundary>
+              </Box>
+              <Footer />
             </Box>
-            <Footer />
-          </Box>
+          </BrowserRouter>
           <Toaster
             position="bottom-right"
             toastOptions={{

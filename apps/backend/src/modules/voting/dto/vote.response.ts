@@ -1,5 +1,6 @@
 // backend/src/modules/voting/dto/vote.response.ts
 import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { GraphQLJSON } from "../../../common/scalars/json.scalar";
 
 @ObjectType()
 export class VoteResponse {
@@ -108,6 +109,6 @@ export class VerificationResult {
   @Field(() => VerificationCheck)
   checks: VerificationCheck;
 
-  @Field()
+  @Field(() => GraphQLJSON, { nullable: true })
   details: any;
 }

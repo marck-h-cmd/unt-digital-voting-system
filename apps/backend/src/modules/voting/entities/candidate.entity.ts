@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 import { ObjectType, Field, ID, Int } from "@nestjs/graphql";
 import { Session } from "./session.entity";
+import { GraphQLJSON } from "../../../common/scalars/json.scalar";
 
 @ObjectType()
 @Entity("candidates")
@@ -51,7 +52,7 @@ export class Candidate {
   @JoinColumn({ name: "sessionId" })
   session: Session;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLJSON, { nullable: true })
   @Column({ nullable: true, type: "jsonb" })
   metadata: any;
 
