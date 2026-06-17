@@ -158,7 +158,7 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
 
     // ============ CONSTRUCTOR ============
     
-    constructor() Ownable(msg.sender) {
+    constructor() {
         state = ElectionState.CREATED;
         currentSessionId = 0;
     }
@@ -433,7 +433,7 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
     /**
      * @dev Obtiene los candidatos de una sesión
      */
-    function getSessionCandidates(uint256 sessionId) external view returns (Candidate[] memory) {
+    function getSessionCandidates(uint256 sessionId) public view returns (Candidate[] memory) {
         uint256[] memory ids = sessionCandidateIds[sessionId];
         Candidate[] memory candidates = new Candidate[](ids.length);
         
