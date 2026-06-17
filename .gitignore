@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+docker/.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# TypeScript
+*.tsbuildinfo
+
+# ZKP / Circom artifacts
+*.r1cs
+*.wasm
+*.zkey
+*.sym
+circuits/build/
+
+# Hardhat / Solidity
+artifacts/
+cache/
+typechain-types/
+deployments/
+
+# Coverage
+coverage/
+lcov.info
+
+# Docker
+docker/.env
+
+# Misc
+*.pem
+.turbo/
