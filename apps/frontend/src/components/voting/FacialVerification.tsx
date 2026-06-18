@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Box,
   VStack,
@@ -10,7 +10,8 @@ import {
   Icon,
   useColorModeValue
 } from '@chakra-ui/react';
-import { FaCamera, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaCamera, FaTimesCircle } from 'react-icons/fa';
+import { apiService } from '../../services/api.service';
 
 interface FacialVerificationProps {
   onVerificationSuccess: (token: string, nullifierHash: string) => void;
@@ -18,40 +19,61 @@ interface FacialVerificationProps {
   dni: string;
 }
 
+interface VerifyFaceResponse {
+  status: string;
+  token: string;
+  nullifierHash: string;
+  voter: {
+    id: string;
+    role: string;
+  };
+}
+
 export const FacialVerification: React.FC<FacialVerificationProps> = ({ onVerificationSuccess, onCancel, dni }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null); // Use ref instead of state to avoid re-renders
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-      setStream(mediaStream);
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        } 
+      });
+      streamRef.current = mediaStream;
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
       setError(null);
     } catch (err) {
+      console.error('Camera error:', err);
       setError('No se pudo acceder a la cámara. Por favor otorga permisos.');
     }
   };
 
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
-  }, [stream]);
+  };
 
   const captureAndVerify = async () => {
-    if (!videoRef.current) return;
+    console.log('FacialVerification: captureAndVerify called');
+    if (!videoRef.current) {
+      console.log('FacialVerification: No video ref, returning');
+      return;
+    }
 
     setIsVerifying(true);
     const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    canvas.width = videoRef.current.videoWidth || 640;
+    canvas.height = videoRef.current.videoHeight || 480;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
@@ -59,13 +81,14 @@ export const FacialVerification: React.FC<FacialVerificationProps> = ({ onVerifi
     const base64Image = canvas.toDataURL('image/jpeg', 0.8);
 
     try {
-      // API call to our backend which talks to DeepFace
-      // Mocked for the frontend integration flow right now
-      await new Promise(r => setTimeout(r, 2000));
-      
-      const mockSessionToken = 'jwt-token-mock-' + Date.now();
-      const mockNullifier = '0x' + Math.random().toString(16).substring(2, 66);
+      console.log('FacialVerification: Calling /identity/verify-face with dni:', dni);
+      const response = await apiService.post<VerifyFaceResponse>('/identity/verify-face', {
+        facePhotoBase64: base64Image,
+        dni: dni, // Pass dni to backend!
+      });
 
+      console.log('FacialVerification: API success, response:', response);
+      
       toast({
         title: 'Verificación Facial Exitosa',
         description: 'Identidad validada. Tienes 5 minutos para votar.',
@@ -73,12 +96,16 @@ export const FacialVerification: React.FC<FacialVerificationProps> = ({ onVerifi
         duration: 4000,
       });
 
+      console.log('FacialVerification: Stopping camera');
       stopCamera();
-      onVerificationSuccess(mockSessionToken, mockNullifier);
+      
+      console.log('FacialVerification: Calling onVerificationSuccess with token and nullifierHash');
+      onVerificationSuccess(response.token, response.nullifierHash);
     } catch (e: any) {
+      console.error('FacialVerification: Error:', e);
       toast({
         title: 'Error de verificación',
-        description: e.message || 'El rostro no coincide con los registros.',
+        description: e.response?.data?.message || e.message || 'El rostro no coincide con los registros.',
         status: 'error',
       });
     } finally {
@@ -86,10 +113,11 @@ export const FacialVerification: React.FC<FacialVerificationProps> = ({ onVerifi
     }
   };
 
-  React.useEffect(() => {
+  // Use effect without dependencies that change!
+  useEffect(() => {
     startCamera();
     return () => stopCamera();
-  }, [stopCamera]);
+  }, []); // Empty dependency array!
 
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
@@ -107,7 +135,7 @@ export const FacialVerification: React.FC<FacialVerificationProps> = ({ onVerifi
 
         <Box 
           w="full" 
-          h="300px" 
+          h="320px" 
           bg={videoBg} 
           borderRadius="xl" 
           overflow="hidden" 
@@ -127,6 +155,22 @@ export const FacialVerification: React.FC<FacialVerificationProps> = ({ onVerifi
               playsInline 
               muted 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
+          )}
+          
+          {/* Face overlay guide */}
+          {!error && !isVerifying && (
+            <Box 
+              position="absolute" 
+              top="50%" 
+              left="50%" 
+              transform="translate(-50%, -50%)"
+              w="200px"
+              h="250px"
+              border="3px dashed"
+              borderColor={primaryColor}
+              borderRadius="full"
+              opacity={0.7}
             />
           )}
           

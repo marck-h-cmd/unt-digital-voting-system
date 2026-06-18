@@ -29,13 +29,21 @@ export class BlockchainService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.initializeConnection();
-    await this.setupContractListeners();
+    try {
+      await this.initializeConnection();
+      await this.setupContractListeners();
+    } catch (error) {
+      this.logger.error(`❌ Failed to initialize blockchain module: ${error.message}`);
+      this.logger.warn(`⚠️ Blockchain features will be disabled. Proceeding without blockchain integration.`);
+    }
   }
 
   private async initializeConnection() {
     try {
       const rpcUrl = this.configService.get("SYSCOIN_RPC_URL");
+      if (!rpcUrl) {
+        throw new Error("SYSCOIN_RPC_URL not configured");
+      }
       this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
       let privateKey = this.configService.get("PRIVATE_KEY");
@@ -59,9 +67,15 @@ export class BlockchainService implements OnModuleInit {
         __dirname,
         "../../../contracts/artifacts/contracts/Election.sol/Election.json",
       );
+      if (!fs.existsSync(abiPath)) {
+        throw new Error(`Contract ABI not found at ${abiPath}`);
+      }
       const contractJson = JSON.parse(fs.readFileSync(abiPath, "utf8"));
       this.contractABI = contractJson.abi;
 
+      if (!this.contractAddress) {
+        throw new Error("CONTRACT_ADDRESS not configured");
+      }
       this.contract = new Contract(
         this.contractAddress,
         this.contractABI,
@@ -91,6 +105,10 @@ export class BlockchainService implements OnModuleInit {
   }
 
   private async setupContractListeners() {
+    if (!this.contract) {
+      this.logger.warn("⚠️ Contract not initialized, skipping listeners setup");
+      return;
+    }
     this.contract.on(
       "VoteCast",
       async (sessionId, voter, voteHash, merkleRoot, event) => {

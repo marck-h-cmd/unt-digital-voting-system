@@ -31,8 +31,8 @@ async function runSeed() {
     console.log('Insertando Sesión Electoral...');
     const sessionRepo = AppDataSource.getRepository(Session);
     
-    const currentTime = Date.now();
-    const oneMonthLater = currentTime + 30 * 24 * 60 * 60 * 1000;
+    const currentTime = Math.floor(Date.now() / 1000); // Convert to seconds
+    const oneMonthLater = currentTime + 30 * 24 * 60 * 60; // 30 days in seconds
 
     const mainSession = sessionRepo.create({
       name: 'Elecciones Universitarias UNT 2026',

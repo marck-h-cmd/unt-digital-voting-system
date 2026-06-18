@@ -112,6 +112,20 @@ export const VotingInterface: React.FC = () => {
   const [showValidation, setShowValidation] = useState(false);
   const [showFacial, setShowFacial] = useState(false);
   const [voterData, setVoterData] = useState<any>(null);
+  
+  // Log all state variables
+  console.log('VotingInterface state:', {
+    selectedCandidate,
+    votingStep,
+    sessionId,
+    showAdvanced,
+    zkpType,
+    sessionToken,
+    nullifierHash,
+    showValidation,
+    showFacial,
+    voterData
+  });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -162,14 +176,25 @@ export const VotingInterface: React.FC = () => {
     }
   }, [chain, address]);
 
+  // Debug session
+  console.log('Session data:', session);
+  console.log('Current time (ms):', Date.now());
+  console.log('Session startTime (ms):', session ? session.startTime * 1000 : null);
+  console.log('Session endTime (ms):', session ? session.endTime * 1000 : null);
+  
   const isVotingActive = useMemo(() => {
     if (!session) return false;
-    return (
+    const current = Date.now();
+    const start = session.startTime * 1000;
+    const end = session.endTime * 1000;
+    const result = (
       session.active &&
       !session.finalized &&
-      Date.now() >= session.startTime * 1000 &&
-      Date.now() <= session.endTime * 1000
+      current >= start &&
+      current <= end
     );
+    console.log('isVotingActive:', result);
+    return result;
   }, [session]);
 
   const timeRemaining = useMemo(() => {
@@ -264,9 +289,12 @@ export const VotingInterface: React.FC = () => {
         <FacialVerification 
           dni={voterData?.dni || ''}
           onVerificationSuccess={(token, nullifier) => {
+            console.log('VotingInterface: onVerificationSuccess called with token:', token, ', nullifier:', nullifier);
+            console.log('VotingInterface: Setting state variables...');
             setSessionToken(token);
             setNullifierHash(nullifier);
             setShowFacial(false);
+            console.log('VotingInterface: State variables updated');
           }}
           onCancel={() => setShowFacial(false)}
         />

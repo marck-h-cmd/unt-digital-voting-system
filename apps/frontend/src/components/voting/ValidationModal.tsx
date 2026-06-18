@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -18,9 +18,12 @@ import {
   RadioGroup,
   Stack,
   Radio,
-  useColorModeValue
+  useColorModeValue,
+  Box,
+  Image
 } from '@chakra-ui/react';
-import { FaUserShield } from 'react-icons/fa';
+import { FaUserShield, FaUpload } from 'react-icons/fa';
+import { apiService } from '../../services/api.service';
 
 interface ValidationModalProps {
   isOpen: boolean;
@@ -34,7 +37,20 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({ isOpen, onClos
   const [role, setRole] = useState('STUDENT');
   const [validationMethod, setValidationMethod] = useState('DNI');
   const [isLoading, setIsLoading] = useState(false);
+  const [dniPhoto, setDniPhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const toast = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDniPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleValidate = async () => {
     let isValid = true;
@@ -43,11 +59,12 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({ isOpen, onClos
       if (validationMethod === 'DNI' && !dni) isValid = false;
       if (validationMethod === 'CARNET' && !carnet) isValid = false;
     }
+    if (!dniPhoto) isValid = false;
 
     if (!isValid) {
       toast({
         title: 'Faltan datos',
-        description: 'Por favor completa todos los campos requeridos',
+        description: 'Por favor completa todos los campos requeridos y sube tu foto de DNI',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -57,15 +74,18 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({ isOpen, onClos
 
     setIsLoading(true);
     try {
-      // Mock validation call - in a real app this would ping the backend ValidationModule
-      await new Promise(resolve => setTimeout(resolve, 1500)); 
+      await apiService.post<{ status: string; message: string; voterId: string }>('/identity/validate-dni', {
+        dni,
+        dniPhotoBase64: dniPhoto,
+        role,
+      });
       
       onSuccess({ dni, carnet, role });
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error de validación',
-        description: 'No se pudo verificar la identidad',
+        description: error.response?.data?.message || 'No se pudo verificar la identidad',
         status: 'error',
       });
     } finally {
@@ -85,7 +105,7 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({ isOpen, onClos
         <ModalBody py={6}>
           <VStack spacing={4}>
             <Text color={useColorModeValue("gray.600", "gray.300")} fontSize="sm">
-              Ingresa tus datos institucionales para proceder con la verificación facial.
+              Ingresa tus datos institucionales y sube tu foto de DNI para proceder con la verificación facial.
             </Text>
             
             <FormControl isRequired>
@@ -137,6 +157,35 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({ isOpen, onClos
                 />
               </FormControl>
             )}
+
+            <FormControl isRequired>
+              <FormLabel>Foto de DNI</FormLabel>
+              <Box 
+                border="2px dashed"
+                borderColor="gray.300"
+                borderRadius="lg"
+                p={4}
+                textAlign="center"
+                cursor="pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {dniPhoto ? (
+                  <Image src={dniPhoto} alt="DNI" maxH="200px" mx="auto" />
+                ) : (
+                  <VStack>
+                    <FaUpload size="24px" color="gray.400" />
+                    <Text color="gray.500">Haz clic para subir tu foto de DNI</Text>
+                  </VStack>
+                )}
+              </Box>
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                display="none"
+              />
+            </FormControl>
           </VStack>
         </ModalBody>
 

@@ -25,11 +25,8 @@ export class Voter {
   })
   role: VoterRole;
 
-  @Column({ nullable: true })
-  facialReferencePath: string;
-
-  @Column({ nullable: true })
-  facialReferenceHash: string;
+  @Column({ type: 'json', nullable: true })
+  facialEmbeddings: number[][];
 
   @Column({ default: false })
   hasVoted: boolean;

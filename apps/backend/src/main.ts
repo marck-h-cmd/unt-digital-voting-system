@@ -107,12 +107,12 @@ async function bootstrap() {
     maxAge: 86400, // 24 horas
   });
 
-  // Versionamiento de API
-  app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: "1",
-    prefix: "api/v",
-  });
+  // Versionamiento de API (disabled for now)
+  // app.enableVersioning({
+  //   type: VersioningType.URI,
+  //   defaultVersion: "1",
+  //   prefix: "v",
+  // });
 
   // Validación global
   app.useGlobalPipes(

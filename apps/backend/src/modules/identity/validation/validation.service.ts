@@ -47,7 +47,6 @@ export class ValidationService {
         dniHash,
         carnetHash,
         role: VoterRole.STUDENT,
-        facialReferencePath: student.facialReferenceUrl,
         hasVoted: false,
       });
       await this.voterRepo.save(voter);
