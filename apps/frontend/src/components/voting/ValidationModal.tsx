@@ -76,6 +76,7 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({ isOpen, onClos
     try {
       await apiService.post<{ status: string; message: string; voterId: string }>('/identity/validate-dni', {
         dni,
+        carnet,
         dniPhotoBase64: dniPhoto,
         role,
       });

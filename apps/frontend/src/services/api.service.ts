@@ -9,8 +9,12 @@ class ApiService {
   constructor() {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/graphql';
     this.client = new GraphQLClient(apiUrl);
+    
+    // Si VITE_API_URL contiene '/graphql', lo reemplazamos por '/api' para REST
+    const restBaseUrl = apiUrl.replace('/graphql', '/api');
+    
     this.axiosInstance = axios.create({
-      baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+      baseURL: restBaseUrl,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',

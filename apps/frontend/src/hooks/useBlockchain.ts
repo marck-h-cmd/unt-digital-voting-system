@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useAccount, useNetwork, useBalance } from 'wagmi';
 import { ethers } from 'ethers';
 
+const SYSCOIN_RPC_URL = import.meta.env.VITE_SYSCOIN_RPC_URL || 'https://rpc.tanenbaum.io';
+
 export const useBlockchain = () => {
   const { address } = useAccount();
   const { chain } = useNetwork();
@@ -11,7 +13,7 @@ export const useBlockchain = () => {
 
   const getGasPrice = async (): Promise<string> => {
     try {
-      const response = await fetch('https://rpc-testnet.syscoin.org', {
+      const response = await fetch(SYSCOIN_RPC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -31,7 +33,7 @@ export const useBlockchain = () => {
 
   const getNetworkInfo = async () => {
     try {
-      const response = await fetch('https://rpc-testnet.syscoin.org', {
+      const response = await fetch(SYSCOIN_RPC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -56,7 +58,7 @@ export const useBlockchain = () => {
   const getTransactionReceipt = async (txHash: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://rpc-testnet.syscoin.org', {
+      const response = await fetch(SYSCOIN_RPC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -89,7 +91,7 @@ export const useBlockchain = () => {
 
   const getCurrentBlock = async (): Promise<number> => {
     try {
-      const response = await fetch('https://rpc-testnet.syscoin.org', {
+      const response = await fetch(SYSCOIN_RPC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +111,7 @@ export const useBlockchain = () => {
 
   const getBalance = async (address: string) => {
     try {
-      const response = await fetch('https://rpc-testnet.syscoin.org', {
+      const response = await fetch(SYSCOIN_RPC_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -81,10 +81,12 @@ async function bootstrap() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // Rate limiting
+  const rateLimitLimit = configService.get<number>("rateLimiter.limit") || 10000;
+  const rateLimitTtl = configService.get<number>("rateLimiter.ttl") || 60;
   app.use(
     rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutos
-      max: 100, // 100 requests por IP
+      windowMs: rateLimitTtl * 1000,
+      max: rateLimitLimit,
       message:
         "Demasiadas peticiones desde esta IP, por favor intenta de nuevo más tarde.",
       standardHeaders: true,

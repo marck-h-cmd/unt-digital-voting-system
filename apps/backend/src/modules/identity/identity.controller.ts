@@ -21,22 +21,41 @@ export class IdentityController {
 
   @Post('validate-dni')
   async validateDNI(
-    @Body() body: { dni: string; dniPhotoBase64: string; role?: VoterRole },
+    @Body() body: { dni?: string; carnet?: string; dniPhotoBase64: string; role?: VoterRole },
   ) {
-    const { dni, dniPhotoBase64, role = VoterRole.STUDENT } = body;
+    let { dni, carnet, dniPhotoBase64, role = VoterRole.STUDENT } = body;
+
+    let student: SIUStudent | null = null;
+    if (role === VoterRole.STUDENT) {
+      if (dni) {
+        student = await this.siuRepo.findOne({ where: { dni } });
+      } else if (carnet) {
+        student = await this.siuRepo.findOne({ where: { carnet } });
+      }
+
+      if (!student) {
+        throw new BadRequestException('Student not found in SIU database or credentials mismatch');
+      }
+
+      if (student.status !== 'ENROLLED') {
+        throw new BadRequestException('Student is not actively enrolled');
+      }
+
+      dni = student.dni;
+      carnet = student.carnet;
+    }
+
+    if (!dni) {
+      throw new BadRequestException('DNI is required for validation');
+    }
 
     let voter = await this.voterRepo.findOne({ where: { dniHash: dni } });
 
     if (!voter) {
-      let student: SIUStudent | null = null;
-      if (role === VoterRole.STUDENT) {
-        student = await this.siuRepo.findOne({ where: { dni } });
-      }
-
       voter = this.voterRepo.create({
         dniHash: dni,
         role: role,
-        carnetHash: student?.carnet,
+        carnetHash: carnet,
         facialEmbeddings: [],
       });
     }

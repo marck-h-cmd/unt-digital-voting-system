@@ -31,7 +31,7 @@ module.exports = {
         
         // Syscoin Testnet
         "syscoin-testnet": {
-            url: "https://rpc-testnet.syscoin.org",
+            url: "https://rpc.tanenbaum.io",
             chainId: 5700,
             gasPrice: 20000000000, // 20 Gwei
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
