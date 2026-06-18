@@ -18,6 +18,15 @@ services:
     depends_on:
       - postgres
       - redis
+      - deepface-service
+
+  deepface-service:
+    container_name: deepface-service
+    build:
+      context: ../deepface-service
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
 
   frontend:
     container_name: unt-voting-system
