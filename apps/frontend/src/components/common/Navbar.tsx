@@ -57,7 +57,7 @@ export const Navbar: React.FC = () => {
       boxShadow="sm"
     >
       <HStack maxW="7xl" mx="auto" spacing={4}>
-        <Heading size="md" color="unt.primary" whiteSpace="nowrap">
+        <Heading size="md" color={useColorModeValue("unt.primary", "unt.secondary")} whiteSpace="nowrap">
           🗳️ UNT Vota
         </Heading>
 
@@ -72,13 +72,14 @@ export const Navbar: React.FC = () => {
               p={2}
               borderRadius="lg"
               fontWeight={location.pathname === item.path ? 'bold' : 'normal'}
-              bg={location.pathname === item.path ? 'unt.primary' : 'transparent'}
-              color={location.pathname === item.path ? 'white' : 'gray.600'}
+              bg={location.pathname === item.path ? useColorModeValue('unt.primary', 'unt.secondary') : 'transparent'}
+              color={location.pathname === item.path ? useColorModeValue('white', 'gray.900') : useColorModeValue('gray.600', 'gray.300')}
               _hover={{
-                bg: location.pathname === item.path ? 'unt.dark' : 'gray.100',
-                transform: 'scale(1.02)',
+                bg: location.pathname === item.path 
+                  ? useColorModeValue('unt.dark', 'yellow.300') 
+                  : useColorModeValue('gray.100', 'whiteAlpha.200'),
               }}
-              transition="all 0.2s"
+              transition="background-color 0.2s"
             >
               <HStack spacing={1}>
                 <item.icon size={16} />
@@ -123,7 +124,7 @@ export const Navbar: React.FC = () => {
           )
         )}
 
-        {isConnected ? (
+        {isAdmin && (isConnected ? (
           <Menu>
             <MenuButton
               as={Button}
@@ -133,13 +134,13 @@ export const Navbar: React.FC = () => {
               _hover={{ bg: 'transparent' }}
             >
               <HStack spacing={2}>
-                <Avatar size="sm" bg="unt.primary" icon={<FaUser color="white" />} />
+                <Avatar size="sm" bg={useColorModeValue('unt.primary', 'unt.secondary')} icon={<FaUser color={useColorModeValue('white', 'gray.900')} />} />
                 <VStack align="start" spacing={0} display={{ base: 'none', md: 'flex' }}>
                   <Text fontSize="sm" fontWeight="medium">
                     {address?.slice(0, 6)}...{address?.slice(-4)}
                   </Text>
                   <Badge colorScheme="green" fontSize="xs">
-                    Conectado
+                    Admin Wallet
                   </Badge>
                 </VStack>
               </HStack>
@@ -149,7 +150,7 @@ export const Navbar: React.FC = () => {
               <MenuItem icon={<FaShieldAlt />}>Verificaciones</MenuItem>
               <Divider />
               <MenuItem icon={<FaSignOutAlt />} onClick={() => disconnect()}>
-                Desconectar
+                Desconectar Wallet
               </MenuItem>
             </MenuList>
           </Menu>
@@ -161,7 +162,7 @@ export const Navbar: React.FC = () => {
           >
             Conectar Wallet
           </Button>
-        )}
+        ))}
       </HStack>
     </Box>
   );

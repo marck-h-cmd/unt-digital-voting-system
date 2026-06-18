@@ -24,6 +24,7 @@ import {
   Tooltip,
   useClipboard,
   Spinner,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { FaCheckCircle, FaCopy, FaDownload, FaShare, FaQrcode } from 'react-icons/fa';
 import QRCode from 'react-qr-code';
@@ -110,6 +111,13 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
     }
   };
 
+  const bgColor = useColorModeValue('white', 'gray.800');
+  const headerBg = useColorModeValue('green.50', 'gray.700');
+  const codeBg = useColorModeValue('gray.50', 'gray.900');
+  const textColor = useColorModeValue('gray.600', 'gray.300');
+  const headingColor = useColorModeValue('green.700', 'green.300');
+  const borderColor = useColorModeValue('gray.200', 'gray.600');
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -117,21 +125,21 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
       transition={{ duration: 0.5 }}
     >
       <Card
-        border="2px solid"
-        borderColor="green.500"
+        border="1px solid"
+        borderColor={borderColor}
         borderRadius="2xl"
-        boxShadow="xl"
-        bg="white"
+        boxShadow="sm"
+        bg={bgColor}
       >
-        <CardHeader bg="green.50" borderTopRadius="2xl">
+        <CardHeader bg={headerBg} borderTopRadius="2xl">
           <VStack spacing={2}>
             <HStack>
               <Icon as={FaCheckCircle} boxSize={8} color="green.500" />
-              <Heading size="lg" color="green.700">
+              <Heading size="lg" color={headingColor}>
                 ¡Voto Emitido con Éxito!
               </Heading>
             </HStack>
-            <Text color="gray.600">
+            <Text color={textColor}>
               Tu voto ha sido registrado en la blockchain de Syscoin
             </Text>
           </VStack>
@@ -153,7 +161,7 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
               <GridItem>
                 <VStack align="stretch" spacing={4}>
                   <Box>
-                    <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                    <Text fontWeight="bold" color={textColor} fontSize="sm">
                       Hash del Voto
                     </Text>
                     <Code
@@ -161,7 +169,7 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
                       borderRadius="md"
                       fontSize="xs"
                       wordBreak="break-all"
-                      bg="gray.50"
+                      bg={codeBg}
                     >
                       {voteHash}
                     </Code>
@@ -178,14 +186,14 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
 
                   <HStack justify="space-between">
                     <Box>
-                      <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                      <Text fontWeight="bold" color={textColor} fontSize="sm">
                         Sesión
                       </Text>
                       <Text>#{sessionId}</Text>
                     </Box>
                     {candidateName && (
                       <Box>
-                        <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                        <Text fontWeight="bold" color={textColor} fontSize="sm">
                           Candidato
                         </Text>
                         <Text>{candidateName}</Text>
@@ -194,7 +202,7 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
                   </HStack>
 
                   <Box>
-                    <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                    <Text fontWeight="bold" color={textColor} fontSize="sm">
                       Red
                     </Text>
                     <Badge colorScheme="purple">Syscoin Testnet</Badge>
@@ -208,8 +216,8 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
                     p={4}
                     bg="white"
                     borderRadius="lg"
-                    border="2px solid"
-                    borderColor="gray.200"
+                    border="1px solid"
+                    borderColor={borderColor}
                   >
                     <QRCode
                       value={JSON.stringify({
@@ -261,7 +269,7 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
               </HStack>
 
               <Button
-                colorScheme="primary"
+                variant="primary"
                 onClick={onReset}
               >
                 Volver a Votar

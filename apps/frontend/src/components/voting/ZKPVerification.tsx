@@ -34,6 +34,7 @@ import {
   Th,
   Td,
   TableContainer,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaCheckCircle, FaTimesCircle, FaClock, FaGasPump } from 'react-icons/fa';
@@ -246,7 +247,7 @@ export const ZKPVerification: React.FC = () => {
                           borderRadius="md"
                           fontSize="xs"
                           wordBreak="break-all"
-                          bg="gray.50"
+                          bg={useColorModeValue('gray.50', 'gray.900')}
                         >
                           {verificationResult.voteHash}
                         </Code>
@@ -332,11 +333,10 @@ export const ZKPVerification: React.FC = () => {
                       </Tbody>
                     </Table>
                   </TableContainer>
-
-                  <Box p={4} bg="gray.50" borderRadius="lg">
+                  <Box p={4} bg={useColorModeValue('gray.50', 'gray.900')} borderRadius="lg">
                     <HStack justify="space-between" wrap="wrap">
                       <Box>
-                        <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                        <Text fontWeight="bold" color={useColorModeValue('gray.600', 'gray.300')} fontSize="sm">
                           Hash de Transacción
                         </Text>
                         <Text fontSize="sm" fontFamily="mono">
@@ -344,7 +344,7 @@ export const ZKPVerification: React.FC = () => {
                         </Text>
                       </Box>
                       <Box>
-                        <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                        <Text fontWeight="bold" color={useColorModeValue('gray.600', 'gray.300')} fontSize="sm">
                           Bloque
                         </Text>
                         <Text fontSize="sm">
@@ -352,7 +352,7 @@ export const ZKPVerification: React.FC = () => {
                         </Text>
                       </Box>
                       <Box>
-                        <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                        <Text fontWeight="bold" color={useColorModeValue('gray.600', 'gray.300')} fontSize="sm">
                           Gas
                         </Text>
                         <Text fontSize="sm">

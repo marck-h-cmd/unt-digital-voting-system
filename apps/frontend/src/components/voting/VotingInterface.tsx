@@ -56,6 +56,9 @@ import { FaShieldAlt, FaVoteYea, FaUserCheck, FaClock, FaGasPump } from 'react-i
 
 import { CandidateCard } from './CandidateCard';
 import { VoteReceipt } from './VoteReceipt';
+import { ValidationModal } from './ValidationModal';
+import { FacialVerification } from './FacialVerification';
+import { SessionTimer } from './SessionTimer';
 import { useVoting } from '../../hooks/useVoting';
 import { useZKProof } from '../../hooks/useZKProof';
 import { useBlockchain } from '../../hooks/useBlockchain';
@@ -85,10 +88,9 @@ interface VotingSession {
 }
 
 export const VotingInterface: React.FC = () => {
-  const { address, isConnected } = useAccount();
+  // Solo se usa para mostrar info de red, ya no restringe el acceso al votante
+  const { address } = useAccount();
   const { chain } = useNetwork();
-  const { switchNetwork } = useSwitchNetwork();
-  const { data: balance } = useBalance({ address });
   const { signMessageAsync } = useSignMessage();
   const { castVote, getSession, getCandidates, getSessionStats } = useVoting();
   const { generateProof, verifyProof } = useZKProof();
@@ -103,16 +105,25 @@ export const VotingInterface: React.FC = () => {
   const [gasPrice, setGasPrice] = useState<string>('0');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [zkpType, setZkpType] = useState<'groth16' | 'pedersen'>('groth16');
+  
+  // Nuevos estados para identidad
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [nullifierHash, setNullifierHash] = useState<string | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
+  const [showFacial, setShowFacial] = useState(false);
+  const [voterData, setVoterData] = useState<any>(null);
+
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const bgColor = useColorModeValue('white', 'gray.800');
   const cardBg = useColorModeValue('gray.50', 'gray.700');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const textColor = useColorModeValue('gray.600', 'gray.300');
 
   // Obtener información de la sesión
   const { data: session, isLoading: sessionLoading, refetch: refetchSession } = useQuery({
     queryKey: ['session', sessionId],
     queryFn: () => getSession(sessionId),
-    enabled: isConnected,
     refetchInterval: 30000,
   });
 
@@ -120,14 +131,12 @@ export const VotingInterface: React.FC = () => {
   const { data: candidates, isLoading: candidatesLoading, refetch: refetchCandidates } = useQuery({
     queryKey: ['candidates', sessionId],
     queryFn: () => getCandidates(sessionId),
-    enabled: isConnected,
   });
 
   // Obtener estadísticas
   const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ['stats', sessionId],
     queryFn: () => getSessionStats(sessionId),
-    enabled: isConnected,
     refetchInterval: 10000,
   });
 
@@ -146,15 +155,12 @@ export const VotingInterface: React.FC = () => {
     return () => clearInterval(interval);
   }, [getGasPrice]);
 
-  // Verificar red correcta
+  // Verificar red correcta (solo aplica a admins con wallet conectada)
   useEffect(() => {
-    if (isConnected && chain?.id !== 5700) {
-      toast.error('Por favor conecta a Syscoin Testnet');
-      if (switchNetwork) {
-        switchNetwork(5700);
-      }
+    if (address && chain?.id !== 5700) {
+      // Opcional: mostrar advertencia solo si es admin
     }
-  }, [chain, isConnected, switchNetwork]);
+  }, [chain, address]);
 
   const isVotingActive = useMemo(() => {
     if (!session) return false;
@@ -193,7 +199,7 @@ export const VotingInterface: React.FC = () => {
   });
 
   const handleVote = useCallback(async () => {
-    if (!selectedCandidate || !address || !session) return;
+    if (!selectedCandidate || !sessionToken || !nullifierHash || !session) return;
 
     try {
       setVotingStep('verify');
@@ -202,7 +208,7 @@ export const VotingInterface: React.FC = () => {
       // 1. Generar ZKP
       toast.loading('Generando prueba ZKP...', { id: loadingToast });
       const zkp = await generateProof({
-        voterId: address,
+        voterId: nullifierHash,
         candidateId: selectedCandidate,
         sessionId: sessionId,
         timestamp: Math.floor(Date.now() / 1000),
@@ -216,7 +222,7 @@ export const VotingInterface: React.FC = () => {
         sessionId,
         candidateId: selectedCandidate,
         timestamp: Math.floor(Date.now() / 1000),
-        voterId: address,
+        voterId: nullifierHash,
         zkpType,
       };
 
@@ -225,10 +231,8 @@ export const VotingInterface: React.FC = () => {
         ethers.toUtf8Bytes(JSON.stringify(voteData))
       );
 
-      // 4. Firmar el voto
-      const signature = await signMessageAsync({
-        message: `Vote: ${voteHash}`,
-      });
+      // 4. Se elimina la firma con wallet, la validación se hace vía JWT en el backend
+      const signature = 'jwt-auth';
 
       toast.loading('Enviando voto a blockchain...', { id: loadingToast });
 
@@ -239,7 +243,8 @@ export const VotingInterface: React.FC = () => {
         voteHash,
         merkleProof: [],
         zkp,
-        signature,
+        sessionToken,
+        nullifierHash,
         candidateId: selectedCandidate,
         encryptedVote: JSON.stringify(voteData),
       });
@@ -250,41 +255,76 @@ export const VotingInterface: React.FC = () => {
       console.error('Error en voto:', error);
       setVotingStep('select');
     }
-  }, [selectedCandidate, address, session, sessionId, generateProof, signMessageAsync, voteMutation, zkpType]);
+  }, [selectedCandidate, sessionToken, nullifierHash, session, sessionId, generateProof, voteMutation, zkpType]);
 
-  if (!isConnected) {
+  // Si está en el proceso de verificación facial
+  if (showFacial) {
+    return (
+      <Box maxW="6xl" mx="auto" py={10}>
+        <FacialVerification 
+          dni={voterData?.dni || ''}
+          onVerificationSuccess={(token, nullifier) => {
+            setSessionToken(token);
+            setNullifierHash(nullifier);
+            setShowFacial(false);
+          }}
+          onCancel={() => setShowFacial(false)}
+        />
+      </Box>
+    );
+  }
+
+  // Si no ha iniciado sesión
+  if (!sessionToken) {
     return (
       <Box
         maxW="6xl"
         mx="auto"
-        py={20}
         textAlign="center"
         bg={bgColor}
+        border="1px"
+        borderColor={borderColor}
+        borderTop="8px solid"
+        borderTopColor={useColorModeValue("unt.secondary", "unt.primary")}
         borderRadius="2xl"
-        boxShadow="xl"
-        px={8}
+        boxShadow="md"
+        px={10}
+        py={16}
       >
         <VStack spacing={8}>
           <Icon as={FaVoteYea} boxSize={16} color="unt.primary" />
-          <Heading size="xl" color="unt.primary">
+          <Heading size="xl" color={useColorModeValue('unt.primary', 'unt.secondary')}>
             Elecciones Universitarias UNT 2024
           </Heading>
-          <Text fontSize="lg" color="gray.600" maxW="2xl">
+          <Text fontSize="lg" color={textColor} maxW="2xl">
             Participa en las elecciones estudiantiles con un sistema de votación
             descentralizado, seguro y verificable.
           </Text>
           <Button
-            colorScheme="primary"
+            variant="primary"
             size="lg"
-            onClick={() => window.dispatchEvent(new Event('web3modal-open'))}
+            onClick={() => setShowValidation(true)}
             leftIcon={<FaUserCheck />}
+            px={8}
+            py={7}
+            fontSize="lg"
+            borderRadius="xl"
           >
-            Conectar Wallet
+            Validar Identidad y Votar
           </Button>
           <Text fontSize="sm" color="gray.500">
-            Compatible con MetaMask, WalletConnect y más
+            Requiere cámara web, DNI y Carnet Universitario
           </Text>
         </VStack>
+        <ValidationModal 
+          isOpen={showValidation} 
+          onClose={() => setShowValidation(false)} 
+          onSuccess={(data) => {
+            setVoterData(data);
+            setShowValidation(false);
+            setShowFacial(true);
+          }}
+        />
       </Box>
     );
   }
@@ -306,19 +346,21 @@ export const VotingInterface: React.FC = () => {
         {/* Header */}
         <Box
           bg={bgColor}
-          borderRadius="2xl"
-          boxShadow="lg"
-          p={6}
-          borderLeft="4px solid"
-          borderColor="unt.primary"
+          borderRadius="xl"
+          boxShadow="sm"
+          border="1px"
+          borderColor={borderColor}
+          borderTop="4px solid"
+          borderTopColor={useColorModeValue("unt.secondary", "unt.primary")}
+          p={8}
         >
-          <VStack align="stretch" spacing={4}>
+          <VStack align="stretch" spacing={6}>
             <HStack justify="space-between" wrap="wrap">
-              <VStack align="start" spacing={1}>
-                <Heading size="xl" color="unt.primary">
+              <VStack align="start" spacing={2}>
+                <Heading size="xl" color={useColorModeValue('unt.primary', 'unt.secondary')}>
                   {session?.name || 'Elecciones UNT 2024'}
                 </Heading>
-                <Text color="gray.600">{session?.description}</Text>
+                <Text color={textColor} fontSize="lg">{session?.description}</Text>
               </VStack>
               <HStack spacing={2}>
                 <Badge
@@ -342,7 +384,7 @@ export const VotingInterface: React.FC = () => {
                 {isVotingActive && (
                   <>
                     <Tooltip label="Tiempo restante">
-                      <Badge colorScheme="blue" fontSize="md" p={2} borderRadius="lg">
+                      <Badge colorScheme="blue" fontSize="md" p={2} borderRadius="md">
                         <HStack spacing={1}>
                           <Icon as={FaClock} />
                           <Text>
@@ -354,7 +396,7 @@ export const VotingInterface: React.FC = () => {
                       </Badge>
                     </Tooltip>
                     <Tooltip label="Precio del gas en Syscoin">
-                      <Badge colorScheme="purple" fontSize="md" p={2} borderRadius="lg">
+                      <Badge colorScheme="gray" fontSize="md" p={2} borderRadius="md">
                         <HStack spacing={1}>
                           <Icon as={FaGasPump} />
                           <Text>{gasPrice} Gwei</Text>
@@ -385,23 +427,33 @@ export const VotingInterface: React.FC = () => {
                 </StatHelpText>
               </Stat>
               <Stat>
-                <StatLabel>Wallet</StatLabel>
+                <StatLabel>Votante Seguro</StatLabel>
                 <StatNumber fontSize="sm">
-                  {address?.slice(0, 6)}...{address?.slice(-4)}
+                  DNI: {voterData?.dni ? `***${voterData.dni.slice(-3)}` : 'Validado'}
                 </StatNumber>
                 <StatHelpText>
-                  Balance: {balance ? Number(ethers.formatEther(balance.value)).toFixed(4) : '0'} SYS
+                  Token de Sesión Activo
                 </StatHelpText>
               </Stat>
             </Grid>
+            {sessionToken && (
+              <Box mt={4}>
+                <SessionTimer onExpire={() => {
+                  setSessionToken(null);
+                  toast.error('Tu sesión segura ha expirado. Por favor, vuelve a validar tu identidad.');
+                }} />
+              </Box>
+            )}
           </VStack>
         </Box>
 
         {/* Advanced Settings */}
-        <Card>
-          <CardHeader>
+        <Card borderTop="4px solid" borderTopColor={borderColor}>
+          <CardHeader py={4}>
             <HStack justify="space-between">
-              <Heading size="sm">Opciones Avanzadas</Heading>
+              <Heading size="md" color={useColorModeValue('unt.primary', 'unt.secondary')}>
+                Opciones Avanzadas
+              </Heading>
               <Button size="sm" variant="ghost" onClick={() => setShowAdvanced(!showAdvanced)}>
                 {showAdvanced ? 'Ocultar' : 'Mostrar'}
               </Button>
@@ -445,14 +497,16 @@ export const VotingInterface: React.FC = () => {
 
         {/* Candidates Selection */}
         {votingStep === 'select' && isVotingActive && (
-          <Box>
-            <Heading size="lg" mb={4}>
-              Selecciona tu candidato
-            </Heading>
-            <Text color="gray.600" mb={6}>
-              Tu voto es secreto y verificable. Selecciona al candidato de tu preferencia.
-            </Text>
-            <Grid templateColumns="repeat(auto-fill, minmax(280px, 1fr))" gap={6}>
+          <Box pt={4}>
+            <VStack align="center" mb={8} spacing={2} textAlign="center">
+              <Heading size="xl" color={useColorModeValue('unt.primary', 'unt.secondary')}>
+                Selecciona tu candidato
+              </Heading>
+              <Text color={textColor} fontSize="lg" maxW="2xl">
+                Tu voto es secreto y verificable. Selecciona al candidato de tu preferencia para continuar con la firma criptográfica local.
+              </Text>
+            </VStack>
+            <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={8} mb={8}>
               {candidates?.map((candidate: Candidate) => (
                 <CandidateCard
                   key={candidate.id}
@@ -465,15 +519,15 @@ export const VotingInterface: React.FC = () => {
             </Grid>
 
             {selectedCandidate && isVotingActive && (
-              <Box textAlign="center" mt={8}>
+              <Box textAlign="center" mt={10} p={6} bg={cardBg} borderRadius="xl" border="1px" borderColor={borderColor}>
                 <Button
-                  colorScheme="green"
+                  variant="primary"
                   size="lg"
                   onClick={onOpen}
                   leftIcon={<FaShieldAlt />}
                   px={12}
                   py={6}
-                  borderRadius="xl"
+                  borderRadius="md"
                   fontSize="lg"
                 >
                   Confirmar Voto para{' '}
@@ -489,15 +543,23 @@ export const VotingInterface: React.FC = () => {
             textAlign="center"
             py={16}
             bg={bgColor}
-            borderRadius="2xl"
-            boxShadow="lg"
+            border="1px"
+            borderColor={borderColor}
+            borderTop="6px solid"
+            borderTopColor="unt.secondary"
+            borderRadius="xl"
+            boxShadow="md"
           >
-            <VStack spacing={6}>
-              <Spinner size="xl" thickness="4px" color="unt.primary" />
-              <Heading size="md">Verificando identidad</Heading>
-              <Text color="gray.600">
-                Generando prueba ZKP y preparando voto...
-              </Text>
+            <VStack spacing={8}>
+              <Spinner size="xl" thickness="4px" color={useColorModeValue('unt.primary', 'unt.secondary')} />
+              <VStack spacing={2}>
+                <Heading size="lg" color={useColorModeValue('unt.primary', 'unt.secondary')}>
+                  Verificando identidad
+                </Heading>
+                <Text color={textColor} fontSize="lg">
+                  Generando prueba ZKP y preparando voto...
+                </Text>
+              </VStack>
               <Progress
                 value={45}
                 size="sm"
@@ -518,17 +580,25 @@ export const VotingInterface: React.FC = () => {
             textAlign="center"
             py={16}
             bg={bgColor}
-            borderRadius="2xl"
-            boxShadow="lg"
+            border="1px"
+            borderColor={borderColor}
+            borderTop="6px solid"
+            borderTopColor="unt.secondary"
+            borderRadius="xl"
+            boxShadow="md"
           >
-            <VStack spacing={6}>
-              <Spinner size="xl" thickness="4px" color="unt.primary" />
-              <Heading size="md">Enviando voto a Syscoin</Heading>
-              <Text color="gray.600">
-                Confirmando transacción en la red NEVM
-              </Text>
+            <VStack spacing={8}>
+              <Spinner size="xl" thickness="4px" color={useColorModeValue('unt.primary', 'unt.secondary')} />
+              <VStack spacing={2}>
+                <Heading size="lg" color={useColorModeValue('unt.primary', 'unt.secondary')}>
+                  Enviando voto a Syscoin
+                </Heading>
+                <Text color={textColor} fontSize="lg">
+                  Confirmando transacción en la red NEVM
+                </Text>
+              </VStack>
               <HStack spacing={4}>
-                <Badge colorScheme="purple">Gas: {gasPrice} Gwei</Badge>
+                <Badge colorScheme="gray">Gas: {gasPrice} Gwei</Badge>
                 <Badge colorScheme="blue">Red: Syscoin Testnet</Badge>
               </HStack>
               <Text fontSize="sm" color="gray.500">
@@ -587,19 +657,19 @@ export const VotingInterface: React.FC = () => {
             </ModalHeader>
             <ModalBody py={6}>
               <VStack spacing={6}>
-                <Box w="full" p={4} bg={cardBg} borderRadius="xl">
-                  <Text fontWeight="bold" color="gray.600" fontSize="sm">
+                <Box w="full" p={4} bg={cardBg} borderRadius="md" border="1px" borderColor={borderColor}>
+                  <Text fontWeight="bold" color={textColor} fontSize="sm">
                     Candidato seleccionado:
                   </Text>
-                  <Text fontSize="2xl" fontWeight="bold" color="unt.primary">
+                  <Text fontSize="2xl" fontWeight="bold" color={useColorModeValue('unt.primary', 'unt.secondary')}>
                     {candidates?.find((c: Candidate) => c.id === selectedCandidate)?.name}
                   </Text>
-                  <Text fontSize="md" color="gray.600">
+                  <Text fontSize="md" color={textColor}>
                     {candidates?.find((c: Candidate) => c.id === selectedCandidate)?.party}
                   </Text>
                 </Box>
 
-                <Alert status="warning" borderRadius="xl">
+                <Alert status="warning" borderRadius="md">
                   <AlertIcon />
                   <Box>
                     <AlertTitle>Importante</AlertTitle>
@@ -610,17 +680,17 @@ export const VotingInterface: React.FC = () => {
                   </Box>
                 </Alert>
 
-                <Box w="full" p={4} bg="blue.50" borderRadius="xl">
+                <Box w="full" p={4} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
                   <HStack justify="space-between">
                     <VStack align="start" spacing={0}>
-                      <Text fontSize="sm" fontWeight="bold" color="blue.700">
+                      <Text fontSize="sm" fontWeight="bold" color={useColorModeValue('blue.700', 'blue.200')}>
                         Costo estimado de transacción
                       </Text>
-                      <Text fontSize="lg" color="blue.900">
+                      <Text fontSize="lg" color={useColorModeValue('blue.900', 'blue.100')}>
                         ~0.005 SYS
                       </Text>
                     </VStack>
-                    <Badge colorScheme="purple" fontSize="sm">
+                    <Badge colorScheme="gray" fontSize="sm">
                       Gas: {gasPrice} Gwei
                     </Badge>
                   </HStack>

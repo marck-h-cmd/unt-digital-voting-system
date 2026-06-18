@@ -65,11 +65,15 @@ const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
 // Tema personalizado de la UNT
 const theme = extendTheme({
+  config: {
+    initialColorMode: 'light',
+    useSystemColorMode: true,
+  },
   colors: {
     unt: {
       primary: '#003366',
       secondary: '#FFD700',
-      accent: '#E8F0FE',
+      accent: '#2B6CB0',
       dark: '#001F3F',
       light: '#F5F8FF',
     },
@@ -79,54 +83,54 @@ const theme = extendTheme({
     body: 'Inter, system-ui, sans-serif',
   },
   styles: {
-    global: {
+    global: (props: any) => ({
       body: {
-        bg: 'gray.50',
-        color: 'gray.800',
+        bg: props.colorMode === 'dark' ? 'gray.900' : 'gray.50',
+        color: props.colorMode === 'dark' ? 'whiteAlpha.900' : 'gray.800',
       },
-    },
+    }),
   },
   components: {
     Button: {
       baseStyle: {
-        borderRadius: 'lg',
-        fontWeight: 'semibold',
+        borderRadius: 'md',
+        fontWeight: 'medium',
       },
       variants: {
-        primary: {
-          bg: 'unt.primary',
-          color: 'white',
+        primary: (props: any) => ({
+          bg: props.colorMode === 'dark' ? 'unt.secondary' : 'unt.primary',
+          color: props.colorMode === 'dark' ? 'gray.900' : 'white',
           _hover: {
-            bg: 'unt.dark',
-            transform: 'scale(1.02)',
+            bg: props.colorMode === 'dark' ? 'yellow.300' : 'unt.dark',
           },
-          _active: {
-            transform: 'scale(0.98)',
-          },
-        },
-        secondary: {
-          bg: 'unt.secondary',
-          color: 'unt.dark',
+        }),
+        secondary: (props: any) => ({
+          bg: props.colorMode === 'dark' ? 'whiteAlpha.200' : 'unt.secondary',
+          color: props.colorMode === 'dark' ? 'whiteAlpha.900' : 'unt.dark',
           _hover: {
-            bg: 'yellow.400',
-            transform: 'scale(1.02)',
+            bg: props.colorMode === 'dark' ? 'whiteAlpha.300' : 'yellow.400',
           },
-        },
+        }),
       },
     },
     Card: {
-      baseStyle: {
+      baseStyle: (props: any) => ({
         container: {
-          borderRadius: 'xl',
-          boxShadow: 'lg',
-          transition: 'all 0.2s',
-          _hover: {
-            transform: 'translateY(-4px)',
-            boxShadow: 'xl',
-          },
+          borderRadius: 'lg',
+          boxShadow: 'sm',
+          bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
+          borderWidth: props.colorMode === 'dark' ? '1px' : '0px',
+          borderColor: 'gray.700',
         },
-      },
+      }),
     },
+    Modal: {
+      baseStyle: (props: any) => ({
+        dialog: {
+          bg: props.colorMode === 'dark' ? 'gray.800' : 'white',
+        }
+      })
+    }
   },
 });
 

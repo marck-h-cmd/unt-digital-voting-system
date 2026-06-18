@@ -16,7 +16,6 @@ import {
   CardFooter,
   Button,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
 import { FaUser, FaVoteYea } from 'react-icons/fa';
 
 interface Candidate {
@@ -43,43 +42,43 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
   disabled = false,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const selectedBg = useColorModeValue('unt.accent', 'gray.700');
+  const selectedBg = useColorModeValue('blue.50', 'whiteAlpha.100');
   const cardBg = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('gray.600', 'gray.300');
 
   const photoUrl = candidate.photoHash
     ? `https://gateway.ipfs.io/ipfs/${candidate.photoHash}`
     : '/default-avatar.png';
 
   return (
-    <motion.div
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.2 }}
-    >
+    <Box>
       <Card
-        border="2px solid"
-        borderColor={isSelected ? 'unt.primary' : borderColor}
+        border="1px solid"
+        borderColor={isSelected ? useColorModeValue('unt.primary', 'unt.secondary') : borderColor}
         bg={isSelected ? selectedBg : cardBg}
         cursor={disabled ? 'not-allowed' : 'pointer'}
         opacity={disabled ? 0.6 : 1}
         onClick={!disabled ? onSelect : undefined}
         position="relative"
         overflow="hidden"
-        _hover={{
-          borderColor: 'unt.primary',
-          boxShadow: 'xl',
-        }}
+        boxShadow="sm"
+        _hover={!disabled ? {
+          borderColor: useColorModeValue('unt.primary', 'unt.secondary'),
+          boxShadow: 'md',
+        } : {}}
       >
         {isSelected && (
           <Box
             position="absolute"
             top={0}
             right={0}
-            bg="unt.primary"
-            color="white"
+            bg={useColorModeValue('unt.primary', 'unt.secondary')}
+            color={useColorModeValue('white', 'gray.900')}
             px={3}
             py={1}
-            borderBottomLeftRadius="lg"
+            borderBottomLeftRadius="md"
             fontSize="sm"
+            fontWeight="bold"
           >
             Seleccionado
           </Box>
@@ -108,10 +107,11 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
                   position="absolute"
                   bottom={2}
                   right={2}
-                  colorScheme="green"
+                  bg="gray.800"
+                  color="white"
                   px={3}
                   py={1}
-                  borderRadius="full"
+                  borderRadius="md"
                 >
                   {candidate.voteCount} votos
                 </Badge>
@@ -119,13 +119,13 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
             </Box>
 
             <VStack align="start" w="full" spacing={1}>
-              <Heading size="md" noOfLines={1}>
+              <Heading size="md" noOfLines={1} color={useColorModeValue('gray.800', 'whiteAlpha.900')}>
                 {candidate.name}
               </Heading>
-              <Badge colorScheme="blue" fontSize="sm">
+              <Badge bg={useColorModeValue('gray.200', 'gray.600')} color={useColorModeValue('gray.800', 'whiteAlpha.900')} fontSize="sm">
                 {candidate.party || 'Independiente'}
               </Badge>
-              <Text fontSize="sm" color="gray.500" noOfLines={2}>
+              <Text fontSize="sm" color={textColor} noOfLines={2}>
                 {candidate.description}
               </Text>
             </VStack>
@@ -134,16 +134,16 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
               isChecked={isSelected}
               onChange={onSelect}
               isDisabled={disabled}
-              colorScheme="primary"
+              colorScheme="yellow"
               alignSelf="start"
             >
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="sm" color={textColor}>
                 Votar por este candidato
               </Text>
             </Radio>
           </VStack>
         </CardBody>
       </Card>
-    </motion.div>
+    </Box>
   );
 };

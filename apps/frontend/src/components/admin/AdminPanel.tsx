@@ -22,6 +22,7 @@ import {
   Divider,
   NumberInput,
   NumberInputField,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { FaTrash, FaPlus, FaCheck } from 'react-icons/fa';
 import { useVoting } from '../../hooks/useVoting';
@@ -127,12 +128,16 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  const textColor = useColorModeValue('gray.600', 'gray.300');
+  const primaryColor = useColorModeValue('unt.primary', 'unt.secondary');
+  const cardBg = useColorModeValue('gray.50', 'gray.700');
+
   return (
     <Box maxW="6xl" mx="auto" px={4}>
       <VStack spacing={8} align="stretch">
         <Box>
-          <Heading size="lg" color="unt.primary">Panel de Administración</Heading>
-          <Text color="gray.600">Administra las sesiones de elecciones estudiantiles</Text>
+          <Heading size="lg" color={primaryColor}>Panel de Administración</Heading>
+          <Text color={textColor}>Administra las sesiones de elecciones estudiantiles</Text>
         </Box>
 
         <Grid templateColumns={{ base: '1fr', lg: '2fr 1fr' }} gap={8}>
@@ -169,7 +174,7 @@ export const AdminPanel: React.FC = () => {
 
                   <List spacing={3}>
                     {candidates.map((candidate, idx) => (
-                      <ListItem key={idx} p={4} borderWidth="1px" borderRadius="lg" bg="gray.50">
+                      <ListItem key={idx} p={4} borderWidth="1px" borderRadius="lg" bg={cardBg}>
                         <VStack spacing={3} align="stretch">
                           <HStack justify="space-between">
                             <Text fontWeight="bold">Candidato #{idx + 1}</Text>
@@ -233,7 +238,7 @@ export const AdminPanel: React.FC = () => {
               </CardHeader>
               <CardBody>
                 <VStack spacing={4} align="stretch">
-                  <Text fontSize="sm" color="gray.600">
+                  <Text fontSize="sm" color={textColor}>
                     Introduce el ID numérico de la sesión que deseas finalizar. Esto bloqueará la emisión de nuevos votos y generará los resultados definitivos.
                   </Text>
                   <FormControl isRequired>

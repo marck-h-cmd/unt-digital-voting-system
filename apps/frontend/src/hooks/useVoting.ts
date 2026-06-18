@@ -102,7 +102,7 @@ const VOTES_QUERY = gql`
   query GetVotes($sessionId: Int!) {
     votes(sessionId: $sessionId) {
       voteHash
-      voterAddress
+      nullifierHash
       isReal
       status
       createdAt
@@ -115,7 +115,7 @@ const VOTE_QUERY = gql`
     vote(voteHash: $voteHash) {
       voteHash
       sessionId
-      voterAddress
+      nullifierHash
       candidate {
         name
       }
@@ -221,10 +221,10 @@ export const useVoting = () => {
     return response.verifyVote;
   };
 
-  const hasVoted = async (sessionId: number, voterAddress: string) => {
+  const hasVoted = async (sessionId: number, nullifierHash: string) => {
     // Para simplificar en frontend, retornamos si hay votos del usuario
     const votes = await getVotes(sessionId);
-    return votes.some((v: any) => v.voterAddress.toLowerCase() === voterAddress.toLowerCase());
+    return votes.some((v: any) => v.nullifierHash === nullifierHash);
   };
 
   return {
