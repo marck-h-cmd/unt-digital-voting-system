@@ -32,10 +32,15 @@ export const Navbar: React.FC = () => {
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
 
+  const isAdmin = !!localStorage.getItem('auth_token');
+
   const navItems = [
     { path: '/', label: 'Votar', icon: FaUser },
-    { path: '/dashboard', label: 'Dashboard', icon: FaChartBar },
-    { path: '/audit', label: 'Auditoría', icon: FaShieldAlt },
+    ...(isAdmin ? [
+      { path: '/dashboard', label: 'Dashboard', icon: FaChartBar },
+      { path: '/audit', label: 'Auditoría', icon: FaShieldAlt },
+      { path: '/admin', label: 'Admin', icon: FaShieldAlt },
+    ] : []),
   ];
 
   return (
@@ -90,6 +95,33 @@ export const Navbar: React.FC = () => {
           variant="ghost"
           size="sm"
         />
+
+        {isAdmin ? (
+          <Button
+            leftIcon={<FaSignOutAlt />}
+            colorScheme="red"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              localStorage.removeItem('auth_token');
+              window.location.href = '/';
+            }}
+          >
+            Salir Admin
+          </Button>
+        ) : (
+          location.pathname !== '/login' && (
+            <Button
+              as={RouterLink}
+              to="/login"
+              colorScheme="yellow"
+              variant="outline"
+              size="sm"
+            >
+              Acceso Admin
+            </Button>
+          )
+        )}
 
         {isConnected ? (
           <Menu>

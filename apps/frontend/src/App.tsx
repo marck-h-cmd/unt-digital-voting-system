@@ -19,6 +19,8 @@ import { ZKPVerification } from './components/voting/ZKPVerification';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { Login } from './components/auth/Login';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Configuración de Syscoin
 const syscoinChain = {
@@ -173,9 +175,31 @@ function App() {
                 <ErrorBoundary>
                   <Routes>
                     <Route path="/" element={<VotingInterface />} />
-                    <Route path="/dashboard" element={<VotingDashboard />} />
-                    <Route path="/audit" element={<AuditPanel />} />
-                    <Route path="/admin" element={<AdminPanel />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <VotingDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/audit"
+                      element={
+                        <ProtectedRoute>
+                          <AuditPanel />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute>
+                          <AdminPanel />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="/verify/:voteHash" element={<ZKPVerification />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>

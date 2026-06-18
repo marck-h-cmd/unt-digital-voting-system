@@ -60,15 +60,7 @@ export const Footer: React.FC = () => {
           </Link>
         </HStack>
 
-        <HStack spacing={1}>
-          <Text fontSize="xs" color="gray.500">
-            Hecho con
-          </Text>
-          <Icon as={FaHeart} boxSize={3} color="red.500" />
-          <Text fontSize="xs" color="gray.500">
-            para la UNT
-          </Text>
-        </HStack>
+       
       </HStack>
     </Box>
   );
