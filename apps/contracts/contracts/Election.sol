@@ -52,13 +52,13 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
     struct Vote {
         bytes32 voteHash;
         uint256 sessionId;
-        address voter;
         uint256 timestamp;
         bytes32 merkleRoot;
         bool isReal;
         bool zkpValid;
         bool counted;
         uint256 candidateId;
+        bytes32 nullifierHash;
     }
 
     struct ZKProofData {
@@ -76,7 +76,7 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
     mapping(uint256 => Session) public sessions;
     mapping(uint256 => mapping(uint256 => Candidate)) public sessionCandidates;
     mapping(uint256 => uint256[]) public sessionCandidateIds;
-    mapping(uint256 => mapping(address => bool)) public hasVoted;
+    mapping(uint256 => mapping(bytes32 => bool)) public usedNullifiers;
     mapping(uint256 => mapping(bytes32 => bool)) public voteExists;
     mapping(uint256 => mapping(bytes32 => Vote)) public votes;
     mapping(uint256 => uint256) public sessionTotalVotes;
@@ -87,7 +87,7 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
     
     event VoteCast(
         uint256 indexed sessionId,
-        address indexed voter,
+        bytes32 indexed nullifierHash,
         bytes32 voteHash,
         bytes32 merkleRoot,
         uint256 timestamp
@@ -306,10 +306,10 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
         bytes32 voteHash,
         bytes32[] calldata merkleProof,
         ZKProofData calldata zkp,
-        bytes memory signature,
+        bytes32 nullifierHash,
         uint256 candidateId
     ) external nonReentrant whenNotPaused onlyActiveSession(sessionId) {
-        require(!hasVoted[sessionId][msg.sender], "Already voted in this session");
+        require(!usedNullifiers[sessionId][nullifierHash], "Nullifier already used");
         require(!voteExists[sessionId][voteHash], "Vote already exists");
         require(candidateId > 0, "Invalid candidate");
 
@@ -325,32 +325,23 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
         bool merkleValid = verifyMerkleProof(merkleProof, sessions[sessionId].merkleRoot, leaf);
         require(merkleValid, "Invalid Merkle proof");
 
-        // 4. Verificar firma (EIP-712)
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(voteHash, msg.sender, sessionId, candidateId)
-        );
-        require(
-            messageHash.toEthSignedMessageHash().recover(signature) == msg.sender,
-            "Invalid signature"
-        );
-
-        // 5. Guardar voto
-        hasVoted[sessionId][msg.sender] = true;
+        // 4. Guardar voto
+        usedNullifiers[sessionId][nullifierHash] = true;
         voteExists[sessionId][voteHash] = true;
         
         votes[sessionId][voteHash] = Vote({
             voteHash: voteHash,
             sessionId: sessionId,
-            voter: msg.sender,
             timestamp: block.timestamp,
             merkleRoot: sessions[sessionId].merkleRoot,
             isReal: true,
             zkpValid: zkpValid,
             counted: false,
-            candidateId: candidateId
+            candidateId: candidateId,
+            nullifierHash: nullifierHash
         });
 
-        // 6. Actualizar contadores
+        // 5. Actualizar contadores
         sessionTotalVotes[sessionId]++;
         sessions[sessionId].totalVotes++;
         
@@ -361,7 +352,7 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
             sessionCandidates[sessionId][candidateId].voteCount++;
         }
 
-        emit VoteCast(sessionId, msg.sender, voteHash, sessions[sessionId].merkleRoot, block.timestamp);
+        emit VoteCast(sessionId, nullifierHash, voteHash, sessions[sessionId].merkleRoot, block.timestamp);
     }
 
     /**
@@ -380,13 +371,13 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
         votes[sessionId][voteHash] = Vote({
             voteHash: voteHash,
             sessionId: sessionId,
-            voter: address(0),
             timestamp: block.timestamp,
             merkleRoot: sessions[sessionId].merkleRoot,
             isReal: false,
             zkpValid: false,
             counted: false,
-            candidateId: candidateId
+            candidateId: candidateId,
+            nullifierHash: bytes32(0)
         });
 
         sessions[sessionId].noiseVotes++;
@@ -480,10 +471,10 @@ contract Election is Ownable, ReentrancyGuard, Pausable, ZKPVerifier, MerkleVeri
     }
 
     /**
-     * @dev Verifica si un votante ha votado en una sesión
+     * @dev Verifica si un nullifier ya ha sido usado en una sesión
      */
-    function hasVoterVoted(uint256 sessionId, address voter) external view returns (bool) {
-        return hasVoted[sessionId][voter];
+    function hasNullifierBeenUsed(uint256 sessionId, bytes32 nullifierHash) external view returns (bool) {
+        return usedNullifiers[sessionId][nullifierHash];
     }
 
     /**
