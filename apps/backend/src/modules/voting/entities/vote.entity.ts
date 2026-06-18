@@ -42,13 +42,9 @@ export class Vote {
   @Column({ nullable: true })
   candidateId: string;
 
-  @Field()
-  @Column()
-  voterAddress: string;
-
-  @Field()
-  @Column()
-  voterPublicKey: string;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  nullifierHash: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })

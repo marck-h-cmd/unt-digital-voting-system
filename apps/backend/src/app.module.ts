@@ -15,6 +15,7 @@ import { MerkleModule } from "./modules/merkle/merkle.module";
 import { CommonModule } from "./common/common.module";
 import { HealthModule } from "./common/health/health.module";
 import { MetricsModule } from "./common/metrics/metrics.module";
+import { IdentityModule } from "./modules/identity/identity.module";
 
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
@@ -90,6 +91,7 @@ import { bullConfig } from "./config/bull.config";
     ZKPModule,
     BlockchainModule,
     MerkleModule,
+    IdentityModule,
     CommonModule,
     HealthModule,
     MetricsModule,

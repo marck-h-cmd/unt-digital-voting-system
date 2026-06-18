@@ -42,7 +42,7 @@ export class VotingConsumer {
       const hasVoted = await this.voteRepo.findOne({
         where: {
           sessionId: voteInput.sessionId,
-          voterAddress: user.address,
+          nullifierHash: voteInput.nullifierHash,
         },
       });
 
@@ -68,7 +68,8 @@ export class VotingConsumer {
         voteInput.voteHash,
         voteInput.merkleProof || [],
         zkp,
-        voteInput.signature,
+        voteInput.nullifierHash,
+        voteInput.candidateId,
       );
 
       // 5. Actualizar voto

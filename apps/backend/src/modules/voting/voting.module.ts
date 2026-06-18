@@ -13,6 +13,7 @@ import { VotingConsumer } from "./voting.consumer";
 import { ZKPModule } from "../zkp/zkp.module";
 import { BlockchainModule } from "../blockchain/blockchain.module";
 import { MerkleModule } from "../merkle/merkle.module";
+import { IdentityModule } from "../identity/identity.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { MerkleModule } from "../merkle/merkle.module";
     ZKPModule,
     BlockchainModule,
     MerkleModule,
+    IdentityModule,
   ],
   providers: [VotingService, VotingResolver, VotingConsumer],
   exports: [VotingService],

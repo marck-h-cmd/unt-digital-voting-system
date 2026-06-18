@@ -50,7 +50,15 @@ export class CastVoteInput {
 
   @Field()
   @IsString()
-  signature: string;
+  sessionToken: string;
+
+  @Field()
+  @IsString()
+  nullifierHash: string;
+
+  @Field(() => Int)
+  @IsNumber()
+  candidateId: number;
 
   @Field({ nullable: true })
   @IsOptional()

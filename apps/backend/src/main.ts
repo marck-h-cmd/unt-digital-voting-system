@@ -76,6 +76,10 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  // Aumentar el límite de payload para permitir fotos Base64 a DeepFace
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
   // Rate limiting
   app.use(
     rateLimit({

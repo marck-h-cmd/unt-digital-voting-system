@@ -85,9 +85,9 @@ export class VotingResolver {
   @Query(() => Boolean)
   async hasVoted(
     @Args("sessionId", { type: () => Int }) sessionId: number,
-    @Args("voterAddress") voterAddress: string,
+    @Args("nullifierHash") nullifierHash: string,
   ): Promise<boolean> {
-    return this.votingService.hasVoted(sessionId, voterAddress);
+    return this.votingService.hasVotedByNullifier(sessionId, nullifierHash);
   }
 
   // ============ MUTATIONS ============

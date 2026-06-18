@@ -33,6 +33,7 @@ import {
 import { ZKPService } from "../zkp/zkp.service";
 import { BlockchainService } from "../blockchain/blockchain.service";
 import { MerkleService } from "../merkle/merkle.service";
+import { SessionService } from "../identity/session/session.service";
 
 @Injectable()
 export class VotingService {
@@ -51,6 +52,7 @@ export class VotingService {
     private zkpService: ZKPService,
     private blockchainService: BlockchainService,
     private merkleService: MerkleService,
+    private sessionService: SessionService,
     @InjectQueue("voting") private votingQueue: Queue,
     @InjectQueue("blockchain") private blockchainQueue: Queue,
   ) {}
@@ -181,7 +183,7 @@ export class VotingService {
   async castVote(input: CastVoteInput, user: any): Promise<VoteResponse> {
     const startTime = Date.now();
     this.logger.log(
-      `Procesando voto de ${user.address} para sesión ${input.sessionId}`,
+      `Procesando voto (nullifier: ${input.nullifierHash}) para sesión ${input.sessionId}`,
     );
 
     // Iniciar transacción
@@ -205,16 +207,18 @@ export class VotingService {
         throw new BadRequestException("La votación ha terminado");
       }
 
-      // 2. Verificar que no haya votado
+      // 2. Consumir token JWT y verificar nullifier
+      await this.sessionService.consumeSession(input.sessionToken);
+
       const existingVote = await queryRunner.manager.findOne(Vote, {
         where: {
           sessionId: input.sessionId,
-          voterAddress: user.address,
+          nullifierHash: input.nullifierHash,
         },
       });
 
       if (existingVote) {
-        throw new BadRequestException("Ya has votado en esta sesión");
+        throw new BadRequestException("Este votante ya ha emitido su voto (Nullifier detectado)");
       }
 
       // 3. Validar ZKP
@@ -223,18 +227,8 @@ export class VotingService {
         throw new BadRequestException("Prueba ZKP inválida");
       }
 
-      // 4. Validar firma
-      const messageHash = ethers.keccak256(
-        ethers.toUtf8Bytes(input.voteHash + input.sessionId),
-      );
-      const recoveredAddress = ethers.verifyMessage(
-        messageHash,
-        input.signature,
-      );
-
-      if (recoveredAddress.toLowerCase() !== user.address.toLowerCase()) {
-        throw new BadRequestException("Firma inválida");
-      }
+      // 4. Validar firma (Eliminado - Validado vía JWT)
+      // La identidad se valida off-chain. Aquí solo confiamos en la validez del token y el nullifier.
 
       // 5. Verificar Merkle Proof (si existe)
       let merkleVerified = false;
@@ -250,8 +244,8 @@ export class VotingService {
       const vote = this.voteRepo.create({
         voteHash: input.voteHash,
         sessionId: input.sessionId,
-        voterAddress: user.address,
-        voterPublicKey: user.publicKey || "",
+        nullifierHash: input.nullifierHash,
+        candidateId: input.candidateId.toString(),
         isReal: true,
         zkpValid: zkpValid,
         zkpProof: input.zkp,
@@ -272,7 +266,8 @@ export class VotingService {
         input.voteHash,
         input.merkleProof || [],
         input.zkp,
-        input.signature,
+        input.nullifierHash,
+        input.candidateId,
       );
 
       // 8. Actualizar voto con datos de blockchain
@@ -344,11 +339,11 @@ export class VotingService {
     });
   }
 
-  async hasVoted(sessionId: number, voterAddress: string): Promise<boolean> {
+  async hasVotedByNullifier(sessionId: number, nullifierHash: string): Promise<boolean> {
     const vote = await this.voteRepo.findOne({
       where: {
         sessionId,
-        voterAddress: voterAddress.toLowerCase(),
+        nullifierHash,
         isReal: true,
       },
     });
@@ -423,7 +418,7 @@ export class VotingService {
       result.details.timestamp = new Date().toISOString();
 
       if (vote) {
-        result.details.voterAddress = vote.voterAddress;
+        result.details.nullifierHash = vote.nullifierHash;
         result.details.txHash = vote.txHash;
         result.details.blockNumber = vote.blockNumber;
       }
@@ -513,12 +508,11 @@ export class VotingService {
             ),
           ),
           sessionId: sessionId,
-          voterAddress: ethers.Wallet.createRandom().address,
-          voterPublicKey: "",
+          nullifierHash: ethers.keccak256(ethers.toUtf8Bytes(`noise-${Math.random()}`)),
+          candidateId: randomCandidate.id.toString(),
           isReal: false,
           zkpValid: false,
           merkleVerified: false,
-          candidate: randomCandidate,
           status: "confirmed",
         });
 

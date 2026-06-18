@@ -143,13 +143,14 @@ export class BlockchainService implements OnModuleInit {
     voteHash: string,
     merkleProof: string[],
     zkp: any,
-    signature: string,
+    nullifierHash: string,
+    candidateId: number,
   ): Promise<any> {
     try {
       this.logger.log(`🎯 Emitiendo voto para sesión ${sessionId}`);
 
       // Validar input
-      if (!sessionId || !voteHash || !zkp || !signature) {
+      if (!sessionId || !voteHash || !zkp || !nullifierHash || !candidateId) {
         throw new Error("Faltan parámetros para el voto");
       }
 
@@ -169,7 +170,8 @@ export class BlockchainService implements OnModuleInit {
         voteHash,
         merkleProof,
         proof,
-        signature,
+        nullifierHash,
+        candidateId,
       );
 
       // Calcular gas limit con buffer
@@ -208,7 +210,8 @@ export class BlockchainService implements OnModuleInit {
         voteHash,
         merkleProof,
         proof,
-        signature,
+        nullifierHash,
+        candidateId,
         {
           gasLimit: finalGasLimit,
           gasPrice: this.gasPrice,
@@ -332,7 +335,8 @@ export class BlockchainService implements OnModuleInit {
     voteHash: string,
     merkleProof: string[],
     zkp: any,
-    signature: string,
+    nullifierHash: string,
+    candidateId: number,
   ): Promise<any> {
     try {
       const proof = {
@@ -349,7 +353,8 @@ export class BlockchainService implements OnModuleInit {
         voteHash,
         merkleProof,
         proof,
-        signature,
+        nullifierHash,
+        candidateId,
       );
 
       const gasPrice = await this.getGasPrice();
