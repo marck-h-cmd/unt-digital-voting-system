@@ -3,51 +3,62 @@ import axios from 'axios';
 import { GraphQLClient } from 'graphql-request';
 
 class ApiService {
-  private client: GraphQLClient;
-  private axiosInstance: any;
+  private voteClient: GraphQLClient;
+  private identityAxios: any;
+  private voteAxios: any;
 
   constructor() {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/graphql';
-    this.client = new GraphQLClient(apiUrl);
+    const voteUrl = import.meta.env.VITE_VOTE_API_URL || 'http://localhost:3000/graphql';
+    const identityUrl = import.meta.env.VITE_IDENTITY_API_URL || 'http://localhost:4000/api';
+    const voteRestUrl = voteUrl.replace('/graphql', '/api');
     
-    // Si VITE_API_URL contiene '/graphql', lo reemplazamos por '/api' para REST
-    const restBaseUrl = apiUrl.replace('/graphql', '/api');
+    this.voteClient = new GraphQLClient(voteUrl);
     
-    this.axiosInstance = axios.create({
-      baseURL: restBaseUrl,
+    this.identityAxios = axios.create({
+      baseURL: identityUrl,
+      timeout: 30000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    this.voteAxios = axios.create({
+      baseURL: voteRestUrl,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    // Interceptors
-    this.axiosInstance.interceptors.request.use(
-      (config: any) => {
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error: any) => Promise.reject(error)
-    );
+    // Interceptors for both
+    [this.identityAxios, this.voteAxios].forEach((instance) => {
+      instance.interceptors.request.use(
+        (config: any) => {
+          const token = localStorage.getItem('auth_token');
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+          return config;
+        },
+        (error: any) => Promise.reject(error)
+      );
 
-    this.axiosInstance.interceptors.response.use(
-      (response: any) => response,
-      (error: any) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('auth_token');
-          window.location.href = '/login';
+      instance.interceptors.response.use(
+        (response: any) => response,
+        (error: any) => {
+          if (error.response?.status === 401) {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login';
+          }
+          return Promise.reject(error);
         }
-        return Promise.reject(error);
-      }
-    );
+      );
+    });
   }
 
   async graphqlRequest(query: string, variables?: any) {
     try {
-      const response = await this.client.request(query, variables);
+      const response = await this.voteClient.request(query, variables);
       return response;
     } catch (error) {
       console.error('GraphQL Error:', error);
@@ -55,34 +66,33 @@ class ApiService {
     }
   }
 
-  async get<T>(url: string, params?: any): Promise<T> {
-    const response = await this.axiosInstance.get(url, { params });
+  // Identity API methods
+  async identityPost<T>(url: string, data?: any): Promise<T> {
+    const response = await this.identityAxios.post(url, data);
     return response.data;
   }
 
-  async post<T>(url: string, data?: any): Promise<T> {
-    const response = await this.axiosInstance.post(url, data);
+  // Vote API methods
+  async voteGet<T>(url: string, params?: any): Promise<T> {
+    const response = await this.voteAxios.get(url, { params });
     return response.data;
   }
 
-  async put<T>(url: string, data?: any): Promise<T> {
-    const response = await this.axiosInstance.put(url, data);
-    return response.data;
-  }
-
-  async delete<T>(url: string): Promise<T> {
-    const response = await this.axiosInstance.delete(url);
+  async votePost<T>(url: string, data?: any): Promise<T> {
+    const response = await this.voteAxios.post(url, data);
     return response.data;
   }
 
   setAuthToken(token: string) {
     localStorage.setItem('auth_token', token);
-    this.axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
+    this.identityAxios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    this.voteAxios.defaults.headers.common.Authorization = `Bearer ${token}`;
   }
 
   removeAuthToken() {
     localStorage.removeItem('auth_token');
-    delete this.axiosInstance.defaults.headers.common.Authorization;
+    delete this.identityAxios.defaults.headers.common.Authorization;
+    delete this.voteAxios.defaults.headers.common.Authorization;
   }
 }
 

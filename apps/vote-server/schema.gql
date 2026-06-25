@@ -1,0 +1,175 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Candidate {
+  id: ID!
+  name: String!
+  party: String
+  description: String
+  photoHash: String
+  voteCount: Int!
+  active: Boolean!
+  sessionId: Int!
+  session: Session!
+  metadata: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""JSON custom scalar type"""
+scalar JSON
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Session {
+  id: ID!
+  name: String!
+  description: String
+  startTime: Int!
+  endTime: Int!
+  active: Boolean!
+  finalized: Boolean!
+  totalVotes: Int!
+  validVotes: Int!
+  noiseVotes: Int!
+  merkleRoot: String
+  resultHash: String
+  ipfsSessionHash: String
+  metadata: JSON
+  votes: [Vote!]!
+  candidates: [Candidate!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Vote {
+  id: ID!
+  voteHash: String!
+  sessionId: Int!
+  session: Session!
+  candidate: Candidate
+  candidateId: String
+  nullifierHash: String
+  encryptedVote: String
+  isReal: Boolean!
+  zkpValid: Boolean!
+  zkpProof: JSON
+  merkleVerified: Boolean!
+  merkleProof: String
+  ipfsHash: String
+  txHash: String
+  blockNumber: Float
+  gasCost: String
+  status: String!
+  confirmations: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type VoteResponse {
+  success: Boolean!
+  voteHash: String!
+  txHash: String!
+  blockNumber: Int!
+  gasCost: String!
+  merkleRoot: String
+  timestamp: String!
+}
+
+type CandidateResult {
+  candidateId: String!
+  name: String!
+  party: String
+  votes: Int!
+  percentage: Float!
+}
+
+type SessionStats {
+  sessionId: Int!
+  name: String!
+  status: String!
+  totalVotes: Int!
+  validVotes: Int!
+  noiseVotes: Int!
+  participationRate: Float!
+  results: [CandidateResult!]!
+  startTime: Int!
+  endTime: Int!
+  merkleRoot: String
+  timestamp: String!
+}
+
+type VerificationCheck {
+  onChain: Boolean!
+  merkleProof: Boolean!
+  zkpValid: Boolean!
+  ipfsVerified: Boolean!
+  confirmed: Boolean!
+}
+
+type VerificationResult {
+  isValid: Boolean!
+  checks: VerificationCheck!
+  details: JSON
+}
+
+type Query {
+  candidates(sessionId: Int!): [Candidate!]!
+  session(id: Int!): Session!
+  sessions: [Session!]!
+  vote(voteHash: String!): Vote!
+  votes(sessionId: Int!, isReal: Boolean): [Vote!]!
+  sessionStats(sessionId: Int!): SessionStats!
+  verifyVote(input: VerifyVoteInput!): VerificationResult!
+  hasVoted(sessionId: Int!, nullifierHash: String!): Boolean!
+}
+
+input VerifyVoteInput {
+  sessionId: Int!
+  voteHash: String!
+  merkleProof: [String!]!
+}
+
+type Mutation {
+  castVote(input: CastVoteInput!): VoteResponse!
+  createSession(input: CreateSessionInput!): Session!
+  finalizeSession(sessionId: Int!): Boolean!
+}
+
+input CastVoteInput {
+  sessionId: Int!
+  voteHash: String!
+  merkleProof: [String!]!
+  zkp: ZKPInput!
+  sessionToken: String!
+  nullifierHash: String!
+  candidateId: Int!
+  encryptedVote: String
+}
+
+input ZKPInput {
+  a: [String!]!
+  b: [[String!]!]!
+  c: [String!]!
+  input: [String!]!
+}
+
+input CreateSessionInput {
+  name: String!
+  description: String
+  startTime: Int!
+  endTime: Int!
+  candidateNames: [String!]!
+  candidateParties: [String!]
+  candidateDescriptions: [String!]
+  candidatePhotos: [String!]
+}
+
+type Subscription {
+  voteCast: VoteResponse!
+  sessionUpdated(sessionId: Int!): SessionStats!
+}

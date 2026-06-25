@@ -1,24 +1,34 @@
 version: "3.9"
 
 services:
-  backend:
-    container_name: unt-voting-backend
+  identity-server:
+    container_name: unt-voting-identity-server
     build:
-      context: ../apps/backend
+      context: ../apps/identity-server
       dockerfile: Dockerfile
     ports:
       - "4000:4000"
     env_file:
       - .env
-    volumes:
-      - ../apps/contracts:/app/contracts
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
     depends_on:
       - postgres
       - redis
       - deepface-service
+
+  vote-server:
+    container_name: unt-voting-vote-server
+    build:
+      context: ../apps/vote-server
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ../apps/contracts:/app/contracts
+    depends_on:
+      - postgres
+      - redis
 
   deepface-service:
     container_name: deepface-service
@@ -33,9 +43,10 @@ services:
     build:
       context: ../apps/frontend
     ports:
-      - "3000:3000"
+      - "80:80"
     depends_on:
-      - backend
+      - identity-server
+      - vote-server
 
   postgres:
     image: postgres:16-alpine

@@ -1,19 +1,12 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
-RUN pip install --no-cache-dir --timeout 1200 -r requirements.txt
-
-RUN python -c "from deepface import DeepFace; DeepFace.build_model('Facenet512')"
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
