@@ -21,10 +21,26 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm run start:prod
     envVars:
-      - key: DATABASE_URL
+      - key: DB_HOST
         fromDatabase: true
-      - key: REDIS_URL
+      - key: DB_PORT
         fromDatabase: true
+      - key: DB_USERNAME
+        fromDatabase: true
+      - key: DB_PASSWORD
+        fromDatabase: true
+      - key: DB_DATABASE
+        fromDatabase: true
+      - key: DB_SSL
+        value: "false"
+      - key: REDIS_HOST
+        fromDatabase: true
+      - key: REDIS_PORT
+        fromDatabase: true
+      - key: REDIS_PASSWORD
+        fromDatabase: true
+      - key: REDIS_DB
+        value: "0"
       - key: JWT_SECRET
         fromDatabase: true
       - key: SYSCOIN_RPC_URL
@@ -44,10 +60,26 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm run start:prod
     envVars:
-      - key: DATABASE_URL
+      - key: DB_HOST
         fromDatabase: true
-      - key: REDIS_URL
+      - key: DB_PORT
         fromDatabase: true
+      - key: DB_USERNAME
+        fromDatabase: true
+      - key: DB_PASSWORD
+        fromDatabase: true
+      - key: DB_DATABASE
+        fromDatabase: true
+      - key: DB_SSL
+        value: "false"
+      - key: REDIS_HOST
+        fromDatabase: true
+      - key: REDIS_PORT
+        fromDatabase: true
+      - key: REDIS_PASSWORD
+        fromDatabase: true
+      - key: REDIS_DB
+        value: "0"
       - key: JWT_SECRET
         fromDatabase: true
       - key: SYSCOIN_RPC_URL
