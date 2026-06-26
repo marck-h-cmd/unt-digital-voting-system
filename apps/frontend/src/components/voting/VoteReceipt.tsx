@@ -57,8 +57,8 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
       sessionId,
       candidateName,
       timestamp: new Date().toISOString(),
-      network: 'Syscoin Testnet',
-      explorerUrl: `https://sysscan.io/tx/${voteHash}`,
+      network: 'zkTanenbaum Testnet',
+      explorerUrl: `https://explorer-zk.tanenbaum.io/tx/${voteHash}`,
     };
 
     const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' });
@@ -205,7 +205,7 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
                     <Text fontWeight="bold" color={textColor} fontSize="sm">
                       Red
                     </Text>
-                    <Badge colorScheme="purple">Syscoin Testnet</Badge>
+                    <Badge colorScheme="purple">zkTanenbaum Testnet</Badge>
                   </Box>
                 </VStack>
               </GridItem>
@@ -224,8 +224,8 @@ export const VoteReceipt: React.FC<VoteReceiptProps> = ({
                         voteHash,
                         sessionId,
                         timestamp: new Date().toISOString(),
-                        network: 'Syscoin',
-                        explorerUrl: `https://sysscan.io/tx/${voteHash}`,
+                        network: 'zkTanenbaum Testnet',
+                        explorerUrl: `https://explorer-zk.tanenbaum.io/tx/${voteHash}`,
                       })}
                       size={150}
                       level="H"

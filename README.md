@@ -78,7 +78,7 @@ El votante **no necesita MetaMask ni wallet propia**. El servidor actúa como **
 | Solidity | 0.8.19 | Lenguaje de smart contracts |
 | Hardhat | - | Framework de desarrollo EVM |
 | OpenZeppelin Upgrades | - | Contratos actualizables |
-| Syscoin NEVM Testnet | chainId: 5700 | Red de prueba (Tanenbaum) |
+| zkTanenbaum Testnet | chainId: 57057 | Red de prueba (zkTanenbaum) |
 | Syscoin NEVM Mainnet | chainId: 57 | Red de producción |
 
 ### AI / Biometría
@@ -321,7 +321,7 @@ python app.py    # http://localhost:5000
 | Red | Chain ID | RPC URL |
 |---|---|---|
 | Syscoin Mainnet | `57` | `https://rpc.syscoin.org` |
-| Syscoin Testnet (Tanenbaum) | `5700` | `https://rpc.tanenbaum.io` |
+| zkTanenbaum Testnet | `57057` | `https://rpc-zk.tanenbaum.io` |
 | Hardhat Local | `1337` | `http://localhost:8545` |
 
 **Contrato desplegado en Testnet:** `0xd67c9A17879288a81eF2552Ad734653486904616`
@@ -363,7 +363,7 @@ Verificación local de pruebas Zero-Knowledge antes de enviarlas a la blockchain
 
 ### `BlockchainModule`
 Abstracción sobre `ethers.js` v6 para Syscoin NEVM:
-- Conecta al RPC de Syscoin Testnet/Mainnet
+- Conecta al RPC de zkTanenbaum Testnet/Mainnet
 - Firma transacciones con la `PRIVATE_KEY` del Relayer
 - Lee y escribe en `Election.sol` y `MerkleVerifier.sol`
 
@@ -474,7 +474,7 @@ facialReferenceUrl: string  // URL de imagen de referencia DeepFace
 6. BLOCKCHAIN (Relayer)
    ├─ VotingConsumer toma trabajo de la cola
    ├─ BlockchainModule firma TX con PRIVATE_KEY del Relayer
-   ├─ Envía a Election.sol en Syscoin Testnet
+   ├─ Envía a Election.sol en zkTanenbaum Testnet
    │     └─ Smart contract registra nullifierHash on-chain
    └─ Espera confirmación de bloque
 
@@ -529,7 +529,7 @@ REDIS_PASSWORD=redis_password
 REDIS_DB=0
 
 # Syscoin Blockchain — Relayer
-SYSCOIN_RPC_URL=https://rpc.tanenbaum.io
+SYSCOIN_RPC_URL=https://rpc-zk.tanenbaum.io
 SYSCOIN_NETWORK=testnet
 CONTRACT_ADDRESS=0xd67c9A17879288a81eF2552Ad734653486904616
 PRIVATE_KEY=0x...          # NUNCA commitear al repositorio

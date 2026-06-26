@@ -2,13 +2,13 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 
-const SYSCOIN_RPC_URL = import.meta.env.VITE_SYSCOIN_RPC_URL || 'https://rpc.tanenbaum.io';
+const SYSCOIN_RPC_URL = import.meta.env.VITE_SYSCOIN_RPC_URL || 'https://rpc-zk.tanenbaum.io';
 
 export const useBlockchain = () => {
   const [isLoading, setIsLoading] = useState(false);
   const address = '0x1234567890abcdef1234567890abcdef12345678';
-  const chain = { id: 5700, name: 'Syscoin Testnet' };
-  const balance = { value: ethers.parseEther('10'), symbol: 'SYS' };
+  const chain = { id: 57057, name: 'zkTanenbaum Testnet' };
+  const balance = { value: ethers.parseEther('10'), symbol: 'TSYS' };
 
   const getGasPrice = async (): Promise<string> => {
     try {
@@ -45,15 +45,15 @@ export const useBlockchain = () => {
       const data = await response.json();
       return {
         chainId: data.result,
-        name: chain?.name || 'Syscoin Testnet',
-        network: 'syscoin-testnet',
+        name: chain?.name || 'zkTanenbaum Testnet',
+        network: 'zk-tanenbaum',
       };
     } catch (error) {
       console.error('Error fetching network info:', error);
       return {
-        chainId: '5700',
-        name: 'Syscoin Testnet',
-        network: 'syscoin-testnet',
+        chainId: '57057',
+        name: 'zkTanenbaum Testnet',
+        network: 'zk-tanenbaum',
       };
     }
   };

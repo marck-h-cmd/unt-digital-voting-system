@@ -93,7 +93,7 @@ export class HealthController {
         }),
       });
       const data = await response.json();
-      return data.result === "5700";
+      return data.result === "57057";
     } catch {
       return false;
     }

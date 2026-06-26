@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 async function main() {
-    console.log("🚀 Deploying Election Contract to Syscoin NEVM...");
+    console.log("🚀 Deploying Election Contract to zkTanenbaum NEVM...");
     
     const [deployer] = await hre.ethers.getSigners();
     console.log(`📡 Deploying with account: ${deployer.address}`);
@@ -51,7 +51,7 @@ async function main() {
     );
     
     console.log("\n📄 Deployment info saved to:", fileName);
-    console.log(`🔗 View on Sysscan: ${deploymentInfo.sysscanUrl}`);
+    console.log(`🔗 View on zkTanenbaum Explorer: ${deploymentInfo.explorerUrl}`);
     
     // Mostrar estadísticas de gas
     console.log("\n⛽ Gas Stats:");

@@ -1,0 +1,60 @@
+services:
+  - type: web
+    name: frontend
+    env: node
+    root: apps/frontend
+    plan: free
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview -- --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: VITE_WALLET_CONNECT_ID
+        fromDatabase: true
+      - key: VITE_API_URL
+        fromDatabase: true
+  - type: web
+    name: backend
+    env: node
+    root: apps/backend
+    plan: free
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: true
+      - key: REDIS_URL
+        fromDatabase: true
+      - key: JWT_SECRET
+        fromDatabase: true
+      - key: SYSCOIN_RPC_URL
+        fromDatabase: true
+      - key: PRIVATE_KEY
+        fromDatabase: true
+      - key: IPFS_API_URL
+        fromDatabase: true
+      - key: NODE_ENV
+        value: production
+  - type: web
+    name: identity-server
+    env: node
+    root: apps/identity-server
+    plan: free
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: true
+      - key: REDIS_URL
+        fromDatabase: true
+      - key: JWT_SECRET
+        fromDatabase: true
+      - key: SYSCOIN_RPC_URL
+        fromDatabase: true
+      - key: PRIVATE_KEY
+        fromDatabase: true
+      - key: IPFS_API_URL
+        fromDatabase: true
+      - key: NODE_ENV
+        value: production

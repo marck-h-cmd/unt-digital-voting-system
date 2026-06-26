@@ -91,11 +91,13 @@ export const VotingInterface: React.FC = () => {
   // Solo se usa para mostrar info de red, ya no restringe el acceso al votante
   const { address } = useAccount();
   const { chain } = useNetwork();
+  const { switchNetwork, chains: availableChains, isLoading: isSwitching } = useSwitchNetwork();
   const { signMessageAsync } = useSignMessage();
   const { castVote, getSession, getCandidates, getSessionStats } = useVoting();
   const { generateProof, verifyProof } = useZKProof();
   const { getGasPrice, getNetworkInfo } = useBlockchain();
   const toast_ = useToast();
+  const isCorrectNetwork = chain?.id === 57057;
   const queryClient = useQueryClient();
 
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
@@ -171,7 +173,7 @@ export const VotingInterface: React.FC = () => {
 
   // Verificar red correcta (solo aplica a admins con wallet conectada)
   useEffect(() => {
-    if (address && chain?.id !== 5700) {
+    if (address && chain?.id !== 57057) {
       // Opcional: mostrar advertencia solo si es admin
     }
   }, [chain, address]);
@@ -627,10 +629,10 @@ export const VotingInterface: React.FC = () => {
               </VStack>
               <HStack spacing={4}>
                 <Badge colorScheme="gray">Gas: {gasPrice} Gwei</Badge>
-                <Badge colorScheme="blue">Red: Syscoin Testnet</Badge>
+                <Badge colorScheme="blue">Red: zkTanenbaum Testnet</Badge>
               </HStack>
               <Text fontSize="sm" color="gray.500">
-                Costo estimado: ~0.005 SYS
+                Costo estimado: ~0.005 TSYS
               </Text>
             </VStack>
           </Box>
@@ -707,6 +709,27 @@ export const VotingInterface: React.FC = () => {
                     </AlertDescription>
                   </Box>
                 </Alert>
+                {address && !isCorrectNetwork && (
+                  <Alert status="error" borderRadius="md" mt={4}>
+                    <AlertIcon />
+                    <Box>
+                      <AlertTitle>Red Incorrecta</AlertTitle>
+                      <AlertDescription>
+                        Conéctate a zkTanenbaum Testnet (chainId 57057) en tu wallet.
+                      </AlertDescription>
+                      <Button
+                        mt={3}
+                        size="sm"
+                        colorScheme="teal"
+                        onClick={() => switchNetwork?.(57057)}
+                        isLoading={isSwitching}
+                        disabled={!switchNetwork}
+                      >
+                        Cambiar a zkTanenbaum
+                      </Button>
+                    </Box>
+                  </Alert>
+                )}
 
                 <Box w="full" p={4} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
                   <HStack justify="space-between">
@@ -726,7 +749,7 @@ export const VotingInterface: React.FC = () => {
 
                 <HStack w="full" justify="space-between">
                   <Text fontSize="sm" color="gray.500">
-                    Red: {chain?.name || 'Syscoin Testnet'}
+                    Red: {chain?.name || 'zkTanenbaum Testnet'}
                   </Text>
                   <Text fontSize="sm" color="gray.500">
                     ZKP: {zkpType === 'groth16' ? 'Groth16' : 'Pedersen'}

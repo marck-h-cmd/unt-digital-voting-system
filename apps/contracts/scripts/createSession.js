@@ -60,7 +60,7 @@ async function main() {
     // Obtener el ID de la sesión
     const sessionId = await election.currentSessionId();
     console.log(`📋 Session ID: ${sessionId}`);
-    console.log(`🔗 View on Sysscan: https://sysscan.io/tx/${receipt.transactionHash}`);
+    console.log(`🔗 View on zkTanenbaum Explorer: https://explorer-zk.tanenbaum.io/tx/${receipt.transactionHash}`);
     
     console.log("\n📊 Session details:");
     console.log(`   Name: ${sessionName}`);

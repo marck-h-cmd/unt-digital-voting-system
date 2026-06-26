@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   identity-server:
     container_name: unt-voting-identity-server

@@ -83,6 +83,13 @@ class ApiService {
     return response.data;
   }
 
+  async post<T>(url: string, data?: any): Promise<T> {
+    if (url.startsWith('/identity')) {
+      return this.identityPost<T>(url, data);
+    }
+    return this.votePost<T>(url, data);
+  }
+
   setAuthToken(token: string) {
     localStorage.setItem('auth_token', token);
     this.identityAxios.defaults.headers.common.Authorization = `Bearer ${token}`;

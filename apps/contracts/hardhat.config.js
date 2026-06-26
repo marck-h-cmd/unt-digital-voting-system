@@ -29,10 +29,10 @@ module.exports = {
             timeout: 60000
         },
         
-        // Syscoin Testnet
+        // zkTanenbaum Testnet
         "syscoin-testnet": {
-            url: "https://rpc.tanenbaum.io",
-            chainId: 5700,
+            url: "https://rpc-zk.tanenbaum.io",
+            chainId: 57057,
             gasPrice: 20000000000, // 20 Gwei
             accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
             timeout: 60000,
@@ -70,7 +70,7 @@ module.exports = {
         enabled: process.env.REPORT_GAS !== undefined,
         currency: "USD",
         gasPriceApi: "https://api.syscoin.org/api/gasPrice",
-        token: "SYS",
+        token: "TSYS",
         coinmarketcap: process.env.CMC_API_KEY,
         rst: true,
         rstNoColors: true

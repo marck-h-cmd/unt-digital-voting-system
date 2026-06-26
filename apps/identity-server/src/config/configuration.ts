@@ -20,8 +20,8 @@ export default () => ({
   },
 
   syscoin: {
-    rpcUrl: process.env.SYSCOIN_RPC_URL || "https://rpc.tanenbaum.io",
-    network: process.env.SYSCOIN_NETWORK || "testnet",
+    rpcUrl: process.env.SYSCOIN_RPC_URL || "https://rpc-zk.tanenbaum.io",
+    network: process.env.SYSCOIN_NETWORK || "zk-tanenbaum",
     contractAddress: process.env.CONTRACT_ADDRESS,
     gasPrice: process.env.SYSCOIN_GAS_PRICE || "20",
     privateKey: process.env.PRIVATE_KEY,
