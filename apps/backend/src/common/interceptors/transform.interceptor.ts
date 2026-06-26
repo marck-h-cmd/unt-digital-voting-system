@@ -17,28 +17,24 @@ export interface Response<T> {
 }
 
 @Injectable()
-export class TransformInterceptor<T> implements NestInterceptor<
-  T,
-  Response<T>
-> {
+export class TransformInterceptor<T> implements NestInterceptor {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Observable<Response<T>> {
+  ): Observable<any> {
     const isGraphQL = context.getType<string>() === "graphql";
-    let path = "";
-    let statusCode = 200;
     
     if (isGraphQL) {
-      const gqlContext = GqlExecutionContext.create(context);
-      const info = gqlContext.getInfo();
-      path = `${info.parentType.name}.${info.fieldName}`;
-    } else {
-      const request = context.switchToHttp().getRequest();
-      const response = context.switchToHttp().getResponse();
-      path = request.url || "";
-      statusCode = response.statusCode;
+      // Skip wrapping GraphQL responses - Apollo needs the raw format
+      return next.handle();
     }
+
+    let path = "";
+    let statusCode = 200;
+    const request = context.switchToHttp().getRequest();
+    const response = context.switchToHttp().getResponse();
+    path = request.url || "";
+    statusCode = response.statusCode;
 
     return next.handle().pipe(
       map((data) => ({

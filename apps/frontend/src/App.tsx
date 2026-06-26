@@ -4,11 +4,6 @@ import { ChakraProvider, extendTheme, Box, ColorModeScript } from '@chakra-ui/re
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { WagmiConfig, configureChains, createConfig } from 'wagmi';
-import { publicProvider } from 'wagmi/providers/public';
-import { InjectedConnector } from 'wagmi/connectors/injected';
-import { Web3Modal } from '@web3modal/react';
-import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
 import { Toaster } from 'react-hot-toast';
 
 import { VotingInterface } from './components/voting/VotingInterface';
@@ -21,47 +16,6 @@ import { Footer } from './components/common/Footer';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Login } from './components/auth/Login';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-
-// Configuración de Syscoin
-const syscoinChain = {
-  id: 5700,
-  name: 'Syscoin Testnet',
-  network: 'syscoin-testnet',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Syscoin',
-    symbol: 'SYS',
-  },
-  rpcUrls: {
-    public: { http: ['https://rpc.tanenbaum.io'] },
-    default: { http: ['https://rpc.tanenbaum.io'] },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Sysscan',
-      url: 'https://sysscan.io',
-    },
-  },
-  testnet: true,
-};
-
-const projectId = import.meta.env.VITE_WALLET_CONNECT_ID || '';
-
-const { chains, publicClient } = configureChains(
-  [syscoinChain],
-  [w3mProvider({ projectId }), publicProvider()]
-);
-
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors: [
-    new InjectedConnector({ chains }),
-    ...w3mConnectors({ projectId, chains })
-  ],
-  publicClient,
-});
-
-const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
 // Tema personalizado de la UNT
 const theme = extendTheme({
@@ -165,86 +119,80 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiConfig config={wagmiConfig}>
-        <ChakraProvider theme={theme}>
-          <ColorModeScript initialColorMode="light" />
-          <Web3Modal
-            projectId={projectId}
-            ethereumClient={ethereumClient}
-          />
-          <BrowserRouter>
-            <Box minH="100vh" display="flex" flexDirection="column">
-              <Navbar />
-              <Box flex="1" py={8} px={4}>
-                <ErrorBoundary>
-                  <Routes>
-                    <Route path="/" element={<VotingInterface />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute>
-                          <VotingDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/audit"
-                      element={
-                        <ProtectedRoute>
-                          <AuditPanel />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin"
-                      element={
-                        <ProtectedRoute>
-                          <AdminPanel />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route path="/verify/:voteHash" element={<ZKPVerification />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </ErrorBoundary>
-              </Box>
-              <Footer />
+      <ChakraProvider theme={theme}>
+        <ColorModeScript initialColorMode="light" />
+        <BrowserRouter>
+          <Box minH="100vh" display="flex" flexDirection="column">
+            <Navbar />
+            <Box flex="1" py={8} px={4}>
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/" element={<VotingInterface />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <VotingDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/audit"
+                    element={
+                      <ProtectedRoute>
+                        <AuditPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <AdminPanel />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/verify/:voteHash" element={<ZKPVerification />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </ErrorBoundary>
             </Box>
-          </BrowserRouter>
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              duration: 5000,
+            <Footer />
+          </Box>
+        </BrowserRouter>
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            duration: 5000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+              borderRadius: '12px',
+              padding: '16px',
+            },
+            success: {
               style: {
-                background: '#363636',
-                color: '#fff',
-                borderRadius: '12px',
-                padding: '16px',
+                background: '#22c55e',
               },
-              success: {
-                style: {
-                  background: '#22c55e',
-                },
-                iconTheme: {
-                  primary: '#fff',
-                  secondary: '#22c55e',
-                },
+              iconTheme: {
+                primary: '#fff',
+                secondary: '#22c55e',
               },
-              error: {
-                style: {
-                  background: '#ef4444',
-                },
-                iconTheme: {
-                  primary: '#fff',
-                  secondary: '#ef4444',
-                },
+            },
+            error: {
+              style: {
+                background: '#ef4444',
               },
-            }}
-          />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </ChakraProvider>
-      </WagmiConfig>
+              iconTheme: {
+                primary: '#fff',
+                secondary: '#ef4444',
+              },
+            },
+          }}
+        />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ChakraProvider>
     </QueryClientProvider>
   );
 }

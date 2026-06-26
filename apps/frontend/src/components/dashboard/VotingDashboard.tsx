@@ -23,7 +23,7 @@ import { ResultsChart } from './ResultsChart';
 
 export const VotingDashboard: React.FC = () => {
   const { getSessionStats, getSession } = useVoting();
-  const [selectedSession, setSelectedSession] = useState<number>(1);
+  const [selectedSession, setSelectedSession] = useState<number>(2);
   const bgColor = useColorModeValue('white', 'gray.800');
 
   const { data: stats, isLoading: statsLoading } = useQuery({

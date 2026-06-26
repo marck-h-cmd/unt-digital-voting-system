@@ -101,7 +101,7 @@ export const VotingInterface: React.FC = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [votingStep, setVotingStep] = useState<'select' | 'verify' | 'voting' | 'receipt'>('select');
   const [voteHash, setVoteHash] = useState<string>('');
-  const [sessionId, setSessionId] = useState<number>(1);
+  const [sessionId, setSessionId] = useState<number>(2);
   const [gasPrice, setGasPrice] = useState<string>('0');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [zkpType, setZkpType] = useState<'groth16' | 'pedersen'>('groth16');

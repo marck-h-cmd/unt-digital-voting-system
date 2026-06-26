@@ -1,27 +1,14 @@
 // frontend/src/components/common/WalletConnector.tsx
 import React from 'react';
-import { Button, useToast, HStack, Text, Icon } from '@chakra-ui/react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { Button, HStack, Text } from '@chakra-ui/react';
+import { useWeb3Modal } from '@web3modal/react';
+import { useAccount, useDisconnect } from 'wagmi';
 import { FaWallet, FaSignOutAlt } from 'react-icons/fa';
 
 export const WalletConnector: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  const toast = useToast();
-
-  const handleConnect = async () => {
-    try {
-      await connect({ connector: connectors[0] });
-    } catch (error) {
-      toast({
-        title: 'Error al conectar',
-        description: (error as any).message,
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  };
+  const { open } = useWeb3Modal();
 
   if (isConnected) {
     return (
@@ -44,7 +31,7 @@ export const WalletConnector: React.FC = () => {
   return (
     <Button
       colorScheme="primary"
-      onClick={handleConnect}
+      onClick={() => open()}
       leftIcon={<FaWallet />}
     >
       Conectar Wallet

@@ -3,30 +3,20 @@ import React from 'react';
 import {
   Box,
   HStack,
-  VStack,
   Heading,
   Button,
   useColorMode,
   useColorModeValue,
   IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Avatar,
   Text,
-  Badge,
   Spacer,
   Link,
-  Divider,
 } from '@chakra-ui/react';
-import { useAccount, useDisconnect } from 'wagmi';
 import { FaMoon, FaSun, FaUser, FaChartBar, FaShieldAlt, FaSignOutAlt } from 'react-icons/fa';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { WalletConnector } from './WalletConnector';
 
 export const Navbar: React.FC = () => {
-  const { isConnected, address } = useAccount();
-  const { disconnect } = useDisconnect();
   const { colorMode, toggleColorMode } = useColorMode();
   const location = useLocation();
   const bgColor = useColorModeValue('white', 'gray.800');
@@ -75,9 +65,7 @@ export const Navbar: React.FC = () => {
               bg={location.pathname === item.path ? useColorModeValue('unt.primary', 'unt.secondary') : 'transparent'}
               color={location.pathname === item.path ? useColorModeValue('white', 'gray.900') : useColorModeValue('gray.600', 'gray.300')}
               _hover={{
-                bg: location.pathname === item.path 
-                  ? useColorModeValue('unt.dark', 'yellow.300') 
-                  : useColorModeValue('gray.100', 'whiteAlpha.200'),
+                bg: location.pathname === item.path ? useColorModeValue('unt.dark', 'yellow.300') : useColorModeValue('gray.100', 'whiteAlpha.200'),
               }}
               transition="background-color 0.2s"
             >
@@ -97,6 +85,7 @@ export const Navbar: React.FC = () => {
           size="sm"
         />
 
+        <WalletConnector />
         {isAdmin ? (
           <Button
             leftIcon={<FaSignOutAlt />}
@@ -123,46 +112,6 @@ export const Navbar: React.FC = () => {
             </Button>
           )
         )}
-
-        {isAdmin && (isConnected ? (
-          <Menu>
-            <MenuButton
-              as={Button}
-              variant="ghost"
-              rounded="full"
-              padding={0}
-              _hover={{ bg: 'transparent' }}
-            >
-              <HStack spacing={2}>
-                <Avatar size="sm" bg={useColorModeValue('unt.primary', 'unt.secondary')} icon={<FaUser color={useColorModeValue('white', 'gray.900')} />} />
-                <VStack align="start" spacing={0} display={{ base: 'none', md: 'flex' }}>
-                  <Text fontSize="sm" fontWeight="medium">
-                    {address?.slice(0, 6)}...{address?.slice(-4)}
-                  </Text>
-                  <Badge colorScheme="green" fontSize="xs">
-                    Admin Wallet
-                  </Badge>
-                </VStack>
-              </HStack>
-            </MenuButton>
-            <MenuList>
-              <MenuItem icon={<FaUser />}>Mi Perfil</MenuItem>
-              <MenuItem icon={<FaShieldAlt />}>Verificaciones</MenuItem>
-              <Divider />
-              <MenuItem icon={<FaSignOutAlt />} onClick={() => disconnect()}>
-                Desconectar Wallet
-              </MenuItem>
-            </MenuList>
-          </Menu>
-        ) : (
-          <Button
-            colorScheme="primary"
-            size="sm"
-            onClick={() => window.dispatchEvent(new Event('web3modal-open'))}
-          >
-            Conectar Wallet
-          </Button>
-        ))}
       </HStack>
     </Box>
   );
