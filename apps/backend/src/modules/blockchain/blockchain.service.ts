@@ -62,13 +62,22 @@ export class BlockchainService implements OnModuleInit {
         }
       }
 
-      // Cargar ABI del contrato
-      const abiPath = path.join(
-        __dirname,
-        "../../../contracts/artifacts/contracts/Election.sol/Election.json",
-      );
-      if (!fs.existsSync(abiPath)) {
-        throw new Error(`Contract ABI not found at ${abiPath}`);
+      // Cargar ABI del contrato desde las rutas posibles dentro del repo
+      const possibleAbiPaths = [
+        path.resolve(
+          __dirname,
+          "../../../../contracts/artifacts/contracts/Election.sol/Election.json",
+        ),
+        path.resolve(
+          __dirname,
+          "../../../contracts/artifacts/contracts/Election.sol/Election.json",
+        ),
+      ];
+      const abiPath = possibleAbiPaths.find((p) => fs.existsSync(p));
+      if (!abiPath) {
+        throw new Error(
+          `Contract ABI not found. Tried paths:\n${possibleAbiPaths.join("\n")}`,
+        );
       }
       const contractJson = JSON.parse(fs.readFileSync(abiPath, "utf8"));
       this.contractABI = contractJson.abi;

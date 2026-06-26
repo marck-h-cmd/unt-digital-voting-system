@@ -10,7 +10,13 @@ services:
     envVars:
       - key: VITE_WALLET_CONNECT_ID
         fromDatabase: true
-      - key: VITE_API_URL
+      - key: VITE_VOTE_API_URL
+        fromDatabase: true
+      - key: VITE_IDENTITY_API_URL
+        fromDatabase: true
+      - key: VITE_SYSCOIN_RPC_URL
+        fromDatabase: true
+      - key: VITE_CONTRACT_ADDRESS
         fromDatabase: true
   - type: web
     name: backend
@@ -18,7 +24,7 @@ services:
     root: apps/backend
     plan: free
     branch: main
-    buildCommand: npm install && npm run build
+    buildCommand: cd ../contracts && npm install && npm run compile && cd ../backend && npm install && npm run build
     startCommand: npm run start:prod
     envVars:
       - key: DB_HOST
@@ -45,9 +51,17 @@ services:
         fromDatabase: true
       - key: SYSCOIN_RPC_URL
         fromDatabase: true
+      - key: SYSCOIN_NETWORK
+        fromDatabase: true
+      - key: CONTRACT_ADDRESS
+        fromDatabase: true
       - key: PRIVATE_KEY
         fromDatabase: true
-      - key: IPFS_API_URL
+      - key: IPFS_HOST
+        fromDatabase: true
+      - key: IPFS_PORT
+        fromDatabase: true
+      - key: IPFS_GATEWAY
         fromDatabase: true
       - key: NODE_ENV
         value: production
@@ -57,7 +71,7 @@ services:
     root: apps/identity-server
     plan: free
     branch: main
-    buildCommand: npm install && npm run build
+    buildCommand: cd ../contracts && npm install && npm run compile && cd ../identity-server && npm install && npm run build
     startCommand: npm run start:prod
     envVars:
       - key: DB_HOST
@@ -71,7 +85,7 @@ services:
       - key: DB_DATABASE
         fromDatabase: true
       - key: DB_SSL
-        value: "false"
+        value: "true"
       - key: REDIS_HOST
         fromDatabase: true
       - key: REDIS_PORT
@@ -84,9 +98,17 @@ services:
         fromDatabase: true
       - key: SYSCOIN_RPC_URL
         fromDatabase: true
+      - key: SYSCOIN_NETWORK
+        fromDatabase: true
+      - key: CONTRACT_ADDRESS
+        fromDatabase: true
       - key: PRIVATE_KEY
         fromDatabase: true
-      - key: IPFS_API_URL
+      - key: IPFS_HOST
+        fromDatabase: true
+      - key: IPFS_PORT
+        fromDatabase: true
+      - key: IPFS_GATEWAY
         fromDatabase: true
       - key: NODE_ENV
         value: production
