@@ -16,8 +16,8 @@ export class VoteResponse {
   @Field(() => Int)
   blockNumber: number;
 
-  @Field()
-  gasCost: string;
+  // @Field()
+  // gasCost: string;
 
   @Field({ nullable: true })
   merkleRoot?: string;

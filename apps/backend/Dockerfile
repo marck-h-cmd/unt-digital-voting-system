@@ -36,11 +36,11 @@ COPY --from=builder /app/node_modules ./node_modules
 RUN mkdir -p logs
 
 # Exponer puerto
-EXPOSE 3000
+EXPOSE 4000
 
 # Variables de entorno
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=4000
 
 # Comando de inicio
 CMD ["node", "dist/main"]

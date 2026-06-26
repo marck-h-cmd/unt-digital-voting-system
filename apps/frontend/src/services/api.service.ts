@@ -8,7 +8,7 @@ class ApiService {
   private voteAxios: any;
 
   constructor() {
-    const voteUrl = import.meta.env.VITE_VOTE_API_URL || 'http://localhost:3000/graphql';
+    const voteUrl = import.meta.env.VITE_VOTE_API_URL || 'http://localhost:4000/graphql';
     const identityUrl = import.meta.env.VITE_IDENTITY_API_URL || 'http://localhost:4000/api';
     const voteRestUrl = voteUrl.replace('/graphql', '/api');
     

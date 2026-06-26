@@ -273,7 +273,7 @@ export class VotingService {
       // 8. Actualizar voto con datos de blockchain
       savedVote.txHash = txResult.txHash;
       savedVote.blockNumber = txResult.blockNumber;
-      savedVote.gasCost = txResult.cost;
+      // savedVote.gasCost = txResult.cost;
       savedVote.status = "confirmed";
       await this.voteRepo.save(savedVote);
 
@@ -300,7 +300,7 @@ export class VotingService {
         voteHash: input.voteHash,
         txHash: txResult.txHash,
         blockNumber: txResult.blockNumber,
-        gasCost: txResult.cost,
+        // gasCost: txResult.cost,
         merkleRoot: session.merkleRoot,
         timestamp: new Date().toISOString(),
       };

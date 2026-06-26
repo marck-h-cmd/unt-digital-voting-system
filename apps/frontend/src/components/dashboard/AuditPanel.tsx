@@ -224,15 +224,15 @@ export const AuditPanel: React.FC = () => {
                   </Thead>
                   <Tbody>
                     {filteredVotes?.map((vote: any) => (
-                      <Tr key={vote.voteHash}>
+                      <Tr key={vote.voteHash || vote.nullifierHash}>
                         <Td>
                           <Code fontSize="xs">
-                            {vote.voteHash.slice(0, 8)}...
+                            {(vote.voteHash || '0x0000000000000000').slice(0, 8)}...
                           </Code>
                         </Td>
                         <Td>
                           <Code fontSize="xs">
-                            {vote.voterAddress.slice(0, 6)}...{vote.voterAddress.slice(-4)}
+                            {(vote.voterAddress || vote.nullifierHash || '0x0000000000000000').slice(0, 6)}...{(vote.voterAddress || vote.nullifierHash || '0x0000000000000000').slice(-4)}
                           </Code>
                         </Td>
                         <Td>

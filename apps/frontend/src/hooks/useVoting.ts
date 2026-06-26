@@ -4,7 +4,7 @@ import { GraphQLClient, gql } from 'graphql-request';
 import toast from 'react-hot-toast';
 
 const client = new GraphQLClient(
-  import.meta.env.VITE_VOTE_API_URL || '/graphql'
+  import.meta.env.VITE_VOTE_API_URL || 'http://localhost:4000/graphql'
 );
 
 // Mock data
@@ -75,7 +75,6 @@ const VOTE_MUTATION = gql`
       voteHash
       txHash
       blockNumber
-      gasCost
       merkleRoot
       timestamp
     }
@@ -183,7 +182,6 @@ const VOTE_QUERY = gql`
       createdAt
       txHash
       blockNumber
-      gasCost
       zkpProof
     }
   }
@@ -220,7 +218,6 @@ export const useVoting = () => {
           voteHash: '0x' + Math.random().toString(16).substring(2, 66),
           txHash: '0x' + Math.random().toString(16).substring(2, 66),
           blockNumber: 123456,
-          gasCost: '0.01',
           merkleRoot: '0xabcdef1234567890abcdef1234567890abcdef12',
           timestamp: new Date().toISOString(),
         };

@@ -75,7 +75,7 @@ export class VotingConsumer {
       // 5. Actualizar voto
       savedVote.txHash = txResult.txHash;
       savedVote.blockNumber = txResult.blockNumber;
-      savedVote.gasCost = txResult.cost;
+      // savedVote.gasCost = txResult.cost;
       savedVote.status = "confirmed";
       await this.voteRepo.save(savedVote);
 
@@ -92,7 +92,7 @@ export class VotingConsumer {
         voteHash: savedVote.voteHash,
         txHash: txResult.txHash,
         blockNumber: txResult.blockNumber,
-        gasCost: txResult.cost,
+        // gasCost: txResult.cost,
       };
     } catch (error) {
       this.logger.error(`❌ Error procesando voto: ${error.message}`);

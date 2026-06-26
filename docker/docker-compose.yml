@@ -1,25 +1,11 @@
 services:
-  identity-server:
-    container_name: unt-voting-identity-server
+  backend:
+    container_name: unt-voting-backend
     build:
-      context: ../apps/identity-server
+      context: ../apps/backend
       dockerfile: Dockerfile
     ports:
       - "4000:4000"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-      - deepface-service
-
-  vote-server:
-    container_name: unt-voting-vote-server
-    build:
-      context: ../apps/vote-server
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     env_file:
       - .env
     volumes:
@@ -27,6 +13,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - deepface-service
 
   deepface-service:
     container_name: deepface-service
@@ -41,10 +28,18 @@ services:
     build:
       context: ../apps/frontend
     ports:
-      - "80:80"
+      - "3001:80"
     depends_on:
-      - identity-server
-      - vote-server
+      - backend
+
+  telegram-bot:
+    container_name: unt-voting-telegram-bot
+    build:
+      context: ../telegram-bot
+      dockerfile: Dockerfile
+    env_file:
+      - ../telegram-bot/.env
+    restart: unless-stopped
 
   postgres:
     image: postgres:16-alpine

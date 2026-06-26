@@ -21,9 +21,9 @@ export class IdentityController {
 
   @Post('validate-dni')
   async validateDNI(
-    @Body() body: { dni?: string; carnet?: string; dniPhotoBase64: string; role?: VoterRole },
+    @Body() body: { dni?: string; carnet?: string; role?: VoterRole },
   ) {
-    let { dni, carnet, dniPhotoBase64, role = VoterRole.STUDENT } = body;
+    let { dni, carnet, role = VoterRole.STUDENT } = body;
 
     let student: SIUStudent | null = null;
     if (role === VoterRole.STUDENT) {
@@ -58,16 +58,21 @@ export class IdentityController {
         carnetHash: carnet,
         facialEmbeddings: [],
       });
+      await this.voterRepo.save(voter);
     }
 
-    const embedding = await this.facialService.extractEmbedding(dniPhotoBase64);
-    voter.facialEmbeddings = [...(voter.facialEmbeddings || []), embedding];
-    await this.voterRepo.save(voter);
+    const token = await this.sessionService.createSession(voter, 1.0);
+    const nullifierHash = `0x${Buffer.from(voter.id).toString('hex')}`;
 
     return {
       status: 'success',
-      message: 'Identity validated and facial pattern stored',
-      voterId: voter.id,
+      message: 'Identity validated successfully',
+      token,
+      nullifierHash,
+      voter: {
+        id: voter.id,
+        role: voter.role,
+      },
     };
   }
 

@@ -62,6 +62,7 @@ import { SessionTimer } from './SessionTimer';
 import { useVoting } from '../../hooks/useVoting';
 import { useZKProof } from '../../hooks/useZKProof';
 import { useBlockchain } from '../../hooks/useBlockchain';
+import { apiService } from '../../services/api.service';
 
 interface Candidate {
   id: string;
@@ -103,7 +104,7 @@ export const VotingInterface: React.FC = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [votingStep, setVotingStep] = useState<'select' | 'verify' | 'voting' | 'receipt'>('select');
   const [voteHash, setVoteHash] = useState<string>('');
-  const [sessionId, setSessionId] = useState<number>(2);
+  const [sessionId, setSessionId] = useState<number>(1);
   const [gasPrice, setGasPrice] = useState<string>('0');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [zkpType, setZkpType] = useState<'groth16' | 'pedersen'>('groth16');
@@ -116,6 +117,7 @@ export const VotingInterface: React.FC = () => {
   const [voterData, setVoterData] = useState<any>(null);
   
   // Log all state variables
+  console.log('=== VotingInterface Component Rerender ===');
   console.log('VotingInterface state:', {
     selectedCandidate,
     votingStep,
@@ -284,26 +286,6 @@ export const VotingInterface: React.FC = () => {
     }
   }, [selectedCandidate, sessionToken, nullifierHash, session, sessionId, generateProof, voteMutation, zkpType]);
 
-  // Si está en el proceso de verificación facial
-  if (showFacial) {
-    return (
-      <Box maxW="6xl" mx="auto" py={10}>
-        <FacialVerification 
-          dni={voterData?.dni || ''}
-          onVerificationSuccess={(token, nullifier) => {
-            console.log('VotingInterface: onVerificationSuccess called with token:', token, ', nullifier:', nullifier);
-            console.log('VotingInterface: Setting state variables...');
-            setSessionToken(token);
-            setNullifierHash(nullifier);
-            setShowFacial(false);
-            console.log('VotingInterface: State variables updated');
-          }}
-          onCancel={() => setShowFacial(false)}
-        />
-      </Box>
-    );
-  }
-
   // Si no ha iniciado sesión
   if (!sessionToken) {
     return (
@@ -324,7 +306,7 @@ export const VotingInterface: React.FC = () => {
         <VStack spacing={8}>
           <Icon as={FaVoteYea} boxSize={16} color="unt.primary" />
           <Heading size="xl" color={useColorModeValue('unt.primary', 'unt.secondary')}>
-            Elecciones Universitarias UNT 2024
+            Elecciones Universitarias UNT 2026
           </Heading>
           <Text fontSize="lg" color={textColor} maxW="2xl">
             Participa en las elecciones estudiantiles con un sistema de votación
@@ -343,16 +325,23 @@ export const VotingInterface: React.FC = () => {
             Validar Identidad y Votar
           </Button>
           <Text fontSize="sm" color="gray.500">
-            Requiere cámara web, DNI y Carnet Universitario
+            Requiere DNI y Carnet Universitario
           </Text>
         </VStack>
         <ValidationModal 
           isOpen={showValidation} 
           onClose={() => setShowValidation(false)} 
           onSuccess={(data) => {
+            console.log('🎉 VotingInterface: onSuccess called with data:', data);
+            console.log('data.token:', data.token);
+            console.log('data.nullifierHash:', data.nullifierHash);
             setVoterData(data);
-            setShowValidation(false);
-            setShowFacial(true);
+            setSessionToken(data.token);
+            setNullifierHash(data.nullifierHash);
+            apiService.setAuthToken(data.token);
+            console.log('✅ VotingInterface: All state variables updated!');
+            console.log('sessionToken is now:', data.token);
+            console.log('nullifierHash is now:', data.nullifierHash);
           }}
         />
       </Box>
@@ -388,7 +377,7 @@ export const VotingInterface: React.FC = () => {
             <HStack justify="space-between" wrap="wrap">
               <VStack align="start" spacing={2}>
                 <Heading size="xl" color={useColorModeValue('unt.primary', 'unt.secondary')}>
-                  {session?.name || 'Elecciones UNT 2024'}
+                  {session?.name || 'Elecciones UNT 2026'}
                 </Heading>
                 <Text color={textColor} fontSize="lg">{session?.description}</Text>
               </VStack>

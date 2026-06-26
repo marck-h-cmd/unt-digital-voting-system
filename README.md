@@ -30,11 +30,11 @@ El **UNT Digital Voting System** resuelve el problema de las elecciones universi
 
 | Pilar | Tecnología | Garantía |
 |---|---|---|
-| 🧬 **Identidad** | DeepFace (Facenet512) | Solo vota quien dice ser |
+| 🧬 **Identidad** | Validación contra SIU database | Solo vota quien dice ser |
 | 🔒 **Privacidad** | Zero-Knowledge Proofs (snarkjs + Circom) | Nadie sabe por quién votaste |
 | ⛓️ **Integridad** | Syscoin NEVM Blockchain | El voto no puede alterarse |
 
-El votante **no necesita MetaMask ni wallet propia**. El servidor actúa como **Relayer** que paga el gas y firma las transacciones de forma anónima.
+El votante **no necesita MetaMask ni wallet propia**. El servidor actúa como **Relayer** que firma las transacciones de forma anónima.
 
 ---
 
@@ -448,15 +448,11 @@ facialReferenceUrl: string  // URL de imagen de referencia DeepFace
    ├─ Selecciona rol: Estudiante o Docente
    └─ Ingresa DNI o Carnet Universitario
 
-2. BIOMETRÍA (DeepFace)
-   ├─ Frontend solicita permiso de cámara
-   ├─ Captura foto en tiempo real (Base64)
-   ├─ Backend → DeepFace /api/face/identify
-   │     └─ Facenet512 calcula embedding → cosine distance < 0.55 → MATCH
-   └─ Backend consulta padrón SIU → estudiante ENROLLED ✓
+2. VALIDACIÓN DE IDENTIDAD
+   ├─ Backend consulta padrón SIU → estudiante ENROLLED ✓
+   └─ Emite JWT temporal de 5 minutos
 
 3. JWT TEMPORAL
-   ├─ Backend emite JWT válido 5 minutos
    ├─ Frontend muestra cuenta regresiva en pantalla
    └─ Botones de candidatos se HABILITAN
 
@@ -533,7 +529,6 @@ SYSCOIN_RPC_URL=https://rpc-zk.tanenbaum.io
 SYSCOIN_NETWORK=testnet
 CONTRACT_ADDRESS=0xd67c9A17879288a81eF2552Ad734653486904616
 PRIVATE_KEY=0x...          # NUNCA commitear al repositorio
-SYSCOIN_GAS_PRICE=20
 
 # IPFS
 IPFS_HOST=localhost

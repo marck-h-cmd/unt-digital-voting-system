@@ -82,9 +82,9 @@ export class Vote {
   @Column({ nullable: true })
   blockNumber: number;
 
-  @Field({ nullable: true })
-  @Column({ nullable: true, type: "decimal", precision: 20, scale: 10 })
-  gasCost: string;
+  // @Field({ nullable: true })
+  // @Column({ nullable: true, type: "decimal", precision: 20, scale: 10 })
+  // gasCost: string;
 
   @Field()
   @Column({ default: "pending" })

@@ -14,7 +14,7 @@ export class BlockchainService implements OnModuleInit {
   private wallet: Wallet;
   private contract: Contract;
   private contractAddress: string;
-  private gasPrice: bigint;
+  // private gasPrice: bigint;
   private contractABI: any;
 
   constructor(
@@ -22,10 +22,10 @@ export class BlockchainService implements OnModuleInit {
     @InjectQueue("blockchain") private blockchainQueue: Queue,
   ) {
     this.contractAddress = this.configService.get("CONTRACT_ADDRESS");
-    this.gasPrice = ethers.parseUnits(
-      this.configService.get("SYSCOIN_GAS_PRICE", "20"),
-      "gwei",
-    );
+    // this.gasPrice = ethers.parseUnits(
+    //   this.configService.get("SYSCOIN_GAS_PRICE", "20"),
+    //   "gwei",
+    // );
   }
 
   async onModuleInit() {
@@ -182,47 +182,7 @@ export class BlockchainService implements OnModuleInit {
         input: zkp.publicSignals.map((s: string) => BigInt(s)),
       };
 
-      // Estimar gas
-      const gasEstimate = await this.contract.castVote.estimateGas(
-        sessionId,
-        voteHash,
-        merkleProof,
-        proof,
-        nullifierHash,
-        candidateId,
-      );
-
-      // Calcular gas limit con buffer
-      const gasLimit = (gasEstimate * 130n) / 100n; // 30% buffer
-
-      const maxGasLimit = 5000000n;
-      if (gasLimit > maxGasLimit) {
-        this.logger.warn(
-          `⚠️ Gas limit alto: ${gasLimit}. Limitando a ${maxGasLimit}`,
-        );
-      }
-
-      const finalGasLimit = gasLimit > maxGasLimit ? maxGasLimit : gasLimit;
-
-      // Calcular costo estimado
-      const estimatedCost = finalGasLimit * this.gasPrice;
-      this.logger.log(`⛽ Gas estimado: ${finalGasLimit}`);
-      this.logger.log(
-        `⛽ Precio gas: ${ethers.formatUnits(this.gasPrice, "gwei")} Gwei`,
-      );
-      this.logger.log(
-        `⛽ Costo estimado: ${ethers.formatEther(estimatedCost)} SYS`,
-      );
-
-      // Verificar balance
-      const balance = await this.provider.getBalance(this.wallet.address);
-      if (balance < estimatedCost) {
-        throw new Error(
-          `Balance insuficiente. Necesita ${ethers.formatEther(estimatedCost)} SYS`,
-        );
-      }
-
-      // Enviar transacción
+      // Enviar transacción sin gasPrice ni gasLimit manual
       const tx = await this.contract.castVote(
         sessionId,
         voteHash,
@@ -230,11 +190,6 @@ export class BlockchainService implements OnModuleInit {
         proof,
         nullifierHash,
         candidateId,
-        {
-          gasLimit: finalGasLimit,
-          gasPrice: this.gasPrice,
-          nonce: await this.provider.getTransactionCount(this.wallet.address),
-        },
       );
 
       this.logger.log(`⛓️ Transacción enviada: ${tx.hash}`);
@@ -242,19 +197,13 @@ export class BlockchainService implements OnModuleInit {
       // Esperar confirmación
       const receipt = await tx.wait();
 
-      // Calcular costo final
-      const gasUsed = receipt.gasUsed;
-      const cost = gasUsed * this.gasPrice;
-
       this.logger.log(`✅ Transacción confirmada: ${receipt.hash}`);
-      this.logger.log(`⛽ Gas usado: ${gasUsed}`);
-      this.logger.log(`⛽ Costo final: ${ethers.formatEther(cost)} SYS`);
 
       return {
         txHash: receipt.hash,
         blockNumber: receipt.blockNumber,
-        gasUsed: gasUsed.toString(),
-        cost: ethers.formatEther(cost),
+        gasUsed: receipt.gasUsed?.toString(),
+        // cost: ethers.formatEther(cost),
         status: receipt.status === 1 ? "success" : "failed",
       };
     } catch (error) {
@@ -291,9 +240,7 @@ export class BlockchainService implements OnModuleInit {
     try {
       this.logger.log(`🌳 Actualizando Merkle Root para sesión ${sessionId}`);
 
-      const tx = await this.contract.updateMerkleRoot(sessionId, merkleRoot, {
-        gasPrice: this.gasPrice,
-      });
+      const tx = await this.contract.updateMerkleRoot(sessionId, merkleRoot);
 
       const receipt = await tx.wait();
 

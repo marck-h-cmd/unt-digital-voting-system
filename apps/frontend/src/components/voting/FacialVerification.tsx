@@ -82,7 +82,7 @@ export const FacialVerification: React.FC<FacialVerificationProps> = ({ onVerifi
 
     try {
       console.log('FacialVerification: Calling /identity/verify-face with dni:', dni);
-      const response = await apiService.post<VerifyFaceResponse>('/identity/verify-face', {
+      const response = await apiService.identityPost<VerifyFaceResponse>('/identity/verify-face', {
         facePhotoBase64: base64Image,
         dni: dni, // Pass dni to backend!
       });
