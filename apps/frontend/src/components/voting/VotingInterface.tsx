@@ -48,7 +48,6 @@ import {
   FormLabel,
   Switch,
 } from '@chakra-ui/react';
-import { useAccount, useSignMessage, useBalance, useNetwork, useSwitchNetwork } from 'wagmi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ethers } from 'ethers';
 import toast from 'react-hot-toast';
@@ -61,7 +60,7 @@ import { FacialVerification } from './FacialVerification';
 import { SessionTimer } from './SessionTimer';
 import { useVoting } from '../../hooks/useVoting';
 import { useZKProof } from '../../hooks/useZKProof';
-import { useBlockchain } from '../../hooks/useBlockchain';
+// import { useBlockchain } from '../../hooks/useBlockchain';
 import { apiService } from '../../services/api.service';
 
 interface Candidate {
@@ -90,22 +89,22 @@ interface VotingSession {
 
 export const VotingInterface: React.FC = () => {
   // Solo se usa para mostrar info de red, ya no restringe el acceso al votante
-  const { address } = useAccount();
-  const { chain } = useNetwork();
-  const { switchNetwork, chains: availableChains, isLoading: isSwitching } = useSwitchNetwork();
-  const { signMessageAsync } = useSignMessage();
-  const { castVote, getSession, getCandidates, getSessionStats } = useVoting();
+  // const { address } = useAccount();
+  // const { chain } = useNetwork();
+  // const { switchNetwork, chains: availableChains, isLoading: isSwitching } = useSwitchNetwork();
+  // const { signMessageAsync } = useSignMessage();
+  const { castVote, getSessions, getSession, getCandidates, getSessionStats } = useVoting();
   const { generateProof, verifyProof } = useZKProof();
-  const { getGasPrice, getNetworkInfo } = useBlockchain();
+  // const { getGasPrice, getNetworkInfo } = useBlockchain();
   const toast_ = useToast();
-  const isCorrectNetwork = chain?.id === 57057;
+  // const isCorrectNetwork = chain?.id === 57057;
   const queryClient = useQueryClient();
 
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [votingStep, setVotingStep] = useState<'select' | 'verify' | 'voting' | 'receipt'>('select');
   const [voteHash, setVoteHash] = useState<string>('');
-  const [sessionId, setSessionId] = useState<number>(1);
-  const [gasPrice, setGasPrice] = useState<string>('0');
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [gasPrice, setGasPrice] = useState<string>('20');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [zkpType, setZkpType] = useState<'groth16' | 'pedersen'>('groth16');
   
@@ -138,47 +137,72 @@ export const VotingInterface: React.FC = () => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const textColor = useColorModeValue('gray.600', 'gray.300');
 
+  // Obtener todas las sesiones
+  const { data: sessions, isLoading: sessionsLoading } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => getSessions(),
+  });
+
+  // Establecer sessionId con la primera sesión
+  useEffect(() => {
+    if (sessions && sessions.length > 0 && !sessionId) {
+      setSessionId(sessions[0].id);
+    }
+  }, [sessions, sessionId]);
+
   // Obtener información de la sesión
   const { data: session, isLoading: sessionLoading, refetch: refetchSession } = useQuery({
     queryKey: ['session', sessionId],
-    queryFn: () => getSession(sessionId),
+    queryFn: () => {
+      if (!sessionId) return null;
+      return getSession(sessionId);
+    },
+    enabled: !!sessionId,
     refetchInterval: 30000,
   });
 
   // Obtener candidatos
   const { data: candidates, isLoading: candidatesLoading, refetch: refetchCandidates } = useQuery({
     queryKey: ['candidates', sessionId],
-    queryFn: () => getCandidates(sessionId),
+    queryFn: () => {
+      if (!sessionId) return [];
+      return getCandidates(sessionId);
+    },
+    enabled: !!sessionId,
   });
 
   // Obtener estadísticas
   const { data: stats, refetch: refetchStats } = useQuery({
     queryKey: ['stats', sessionId],
-    queryFn: () => getSessionStats(sessionId),
+    queryFn: () => {
+      if (!sessionId) return null;
+      return getSessionStats(sessionId);
+    },
+    enabled: !!sessionId,
     refetchInterval: 10000,
   });
 
   // Obtener gas price
-  useEffect(() => {
-    const fetchGasPrice = async () => {
-      try {
-        const price = await getGasPrice();
-        setGasPrice(price);
-      } catch (error) {
-        console.error('Error fetching gas price:', error);
-      }
-    };
-    fetchGasPrice();
-    const interval = setInterval(fetchGasPrice, 60000);
-    return () => clearInterval(interval);
-  }, [getGasPrice]);
+  // useEffect(() => {
+  //   const fetchGasPrice = async () => {
+  //     try {
+  //       const price = await getGasPrice();
+  //       setGasPrice(price);
+  //     } catch (error) {
+  //       console.error('Error fetching gas price:', error);
+  //     }
+  //   };
+  //   fetchGasPrice();
+  //   const interval = setInterval(fetchGasPrice, 60000);
+  //   return () => clearInterval(interval);
+  // }, [getGasPrice]);
 
   // Verificar red correcta (solo aplica a admins con wallet conectada)
-  useEffect(() => {
-    if (address && chain?.id !== 57057) {
-      // Opcional: mostrar advertencia solo si es admin
-    }
-  }, [chain, address]);
+  // useEffect(() => {
+  //   if (address && chain?.id !== 57057) {
+  //     // Opcional: mostrar advertencia solo si es admin
+  //   }
+  // }, [chain, address]);
 
   // Debug session
   console.log('Session data:', session);
@@ -228,7 +252,7 @@ export const VotingInterface: React.FC = () => {
   });
 
   const handleVote = useCallback(async () => {
-    if (!selectedCandidate || !sessionToken || !nullifierHash || !session) return;
+    if (!selectedCandidate || !sessionToken || !nullifierHash || !session || !sessionId) return;
 
     try {
       setVotingStep('verify');
@@ -348,7 +372,7 @@ export const VotingInterface: React.FC = () => {
     );
   }
 
-  if (sessionLoading || candidatesLoading) {
+  if (sessionsLoading || sessionLoading || candidatesLoading || !sessionId) {
     return (
       <Box textAlign="center" py={20}>
         <Spinner size="xl" thickness="4px" color="unt.primary" />
@@ -698,7 +722,7 @@ export const VotingInterface: React.FC = () => {
                     </AlertDescription>
                   </Box>
                 </Alert>
-                {address && !isCorrectNetwork && (
+                {/* {address && !isCorrectNetwork && (
                   <Alert status="error" borderRadius="md" mt={4}>
                     <AlertIcon />
                     <Box>
@@ -718,7 +742,7 @@ export const VotingInterface: React.FC = () => {
                       </Button>
                     </Box>
                   </Alert>
-                )}
+                )}*/}
 
                 <Box w="full" p={4} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
                   <HStack justify="space-between">
@@ -738,7 +762,7 @@ export const VotingInterface: React.FC = () => {
 
                 <HStack w="full" justify="space-between">
                   <Text fontSize="sm" color="gray.500">
-                    Red: {chain?.name || 'zkTanenbaum Testnet'}
+                    Red: zkTanenbaum Testnet
                   </Text>
                   <Text fontSize="sm" color="gray.500">
                     ZKP: {zkpType === 'groth16' ? 'Groth16' : 'Pedersen'}

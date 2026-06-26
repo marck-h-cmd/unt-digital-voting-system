@@ -14,7 +14,6 @@ import {
 } from '@chakra-ui/react';
 import { FaMoon, FaSun, FaUser, FaChartBar, FaShieldAlt, FaSignOutAlt } from 'react-icons/fa';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { WalletConnector } from './WalletConnector';
 
 export const Navbar: React.FC = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -85,7 +84,6 @@ export const Navbar: React.FC = () => {
           size="sm"
         />
 
-        <WalletConnector />
         {isAdmin ? (
           <Button
             leftIcon={<FaSignOutAlt />}

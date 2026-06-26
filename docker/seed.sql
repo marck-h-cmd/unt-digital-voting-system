@@ -11,4 +11,11 @@ INSERT INTO candidates (id, name, party, description, "voteCount", active, "sess
 INSERT INTO siu_students (dni, carnet, "fullName", email, status, "facialReferenceUrl") VALUES
 ('12345678', '2020123456', 'Juan Perez', 'juanperez@unitru.edu.pe', 'ENROLLED', ''),
 ('87654321', '2021654321', 'Maria Rodriguez', 'mariarodriguez@unitru.edu.pe', 'ENROLLED', ''),
-('11223344', '2022112233', 'Carlos Gomez', 'carlosgomez@unitru.edu.pe', 'ENROLLED', '');
+('11223344', '2022112233', 'Carlos Gomez', 'carlosgomez@unitru.edu.pe', 'ENROLLED', ''),
+('61002639', '2018610026', 'Ana Lucia Diaz', 'analuciadiaz@unitru.edu.pe', 'ENROLLED', ''),
+('98765432', '2019987654', 'Diego Fernando Lopez', 'diegolopez@unitru.edu.pe', 'ENROLLED', ''),
+('44332211', '2023443322', 'Sofia Martinez', 'sofiarmartinez@unitru.edu.pe', 'ENROLLED', ''),
+('55667788', '2024556677', 'Jose Miguel Torres', 'josemigueltorres@unitru.edu.pe', 'ENROLLED', ''),
+('13579246', '2017135792', 'Valentina Quispe', 'valentinaquispe@unitru.edu.pe', 'ENROLLED', ''),
+('24681357', '2016246813', 'Rodrigo Huaman', 'rodrigohuaman@unitru.edu.pe', 'ENROLLED', ''),
+('35792468', '2025357924', 'Camila Soto', 'camilasoto@unitru.edu.pe', 'ENROLLED', '');

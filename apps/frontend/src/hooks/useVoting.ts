@@ -101,6 +101,24 @@ const FINALIZE_SESSION_MUTATION = gql`
   }
 `;
 
+const SESSIONS_QUERY = gql`
+  query GetSessions {
+    sessions {
+      id
+      name
+      description
+      startTime
+      endTime
+      active
+      finalized
+      totalVotes
+      validVotes
+      noiseVotes
+      merkleRoot
+    }
+  }
+`;
+
 const SESSION_QUERY = gql`
   query GetSession($id: Int!) {
     session(id: $id) {
@@ -205,6 +223,16 @@ const VERIFY_VOTE_QUERY = gql`
 
 export const useVoting = () => {
   const queryClient = useQueryClient();
+
+  const getSessions = async () => {
+    try {
+      const response = await client.request<any>(SESSIONS_QUERY);
+      return response.sessions;
+    } catch (error) {
+      console.error('Error fetching sessions, using mock:', error);
+      return mockSessions;
+    }
+  };
 
   const castVote = useMutation({
     mutationFn: async (input: any) => {
@@ -425,6 +453,7 @@ export const useVoting = () => {
     castVote: castVote.mutateAsync,
     createSession: createSession.mutateAsync,
     finalizeSession: finalizeSession.mutateAsync,
+    getSessions,
     getSession,
     getCandidates,
     getSessionStats,
